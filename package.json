@@ -1,0 +1,32 @@
+{
+  "name": "rmdashboard",
+  "version": "1.5.0",
+  "description": "Dashboard for RM task in AWS RLHF",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.deloitte.rmdashboard",
+    "productName": "rmdashboard",
+    "directories": {
+      "output": "build"
+    },
+    "win": {
+      "icon": "icons/icon.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "allowToChangeInstallationDirectory": false,
+      "runAfterFinish": true
+    }
+  },
+  "author": "Aditya Malik",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^25.2.0",
+    "electron-builder": "^24.4.0"
+  }
+}
