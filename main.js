@@ -92,7 +92,10 @@ function createWindow() {
     const today = new Date();
 
     let folderName = "";
-    if (data[0].annotatorEmail === "achandrayan@deloitte.com") {
+    if (
+      data[0].annotatorEmail === "achandrayan@deloitte.com" ||
+      data[0].annotatorEmail === "arunanand@deloitte.com"
+    ) {
       folderName = `C:\\Users\\${data[0].annotatorEmail}\\Deloitte (O365D)\\RLHF UAT RM - General\\${data[0].annotatorEmail}`;
     } else {
       folderName = `C:\\Users\\${

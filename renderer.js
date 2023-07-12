@@ -590,14 +590,20 @@ function checkLinesOfCode(completions) {
 }
 
 function checkRating(completions) {
+  /* changes */
+
   var errorList = [];
 
   completions.map((comp, index) => {
     let ques = comp.question.questions;
 
-    if (ques[1].answer === "3") {
-      return { errorList };
-    }
+    /* NA answers will not be rejected anymore */
+
+    // if (ques[1].answer === "3") {
+
+    //   return { errorList };
+
+    // }
 
     if (ques[0].answer != "1") {
       if (ques[4].answer > 1) {
@@ -608,9 +614,11 @@ function checkRating(completions) {
         );
       }
     } else {
-      //   if (!["1", "3"].includes(ques[1].answer)) {
+      if (!["1", "3"].includes(ques[1].answer)) {
+        /* checking for 'NA' as true as well, and not just 'yes' */
 
-      if (ques[1].answer != "1") {
+        //   if (ques[1].answer != "1") {
+
         if (ques[3].answer != "1") {
           if (ques[4].answer > 1) {
             errorList.push(
@@ -638,11 +646,11 @@ function checkRating(completions) {
             );
           }
         } else {
-          if (ques[4].answer < 4) {
+          if (ques[4].answer <= 4) {
             errorList.push(
               "Completion " +
                 String.fromCharCode(index + 65) +
-                ": Rating cannot be less than 4 for submitted choices."
+                ": Rating has to be more than 4 for submitted choices." /* changed the message text */
             );
           }
         }
@@ -750,14 +758,14 @@ function checkRatingHelper(ques) {
     return { start: 1, end: 7 };
   }
 
-  if (ques[1] === "3") {
-    return { start: 1, end: 7 };
-  }
+  // if (ques[1] === "3") {
+  //   return { start: 1, end: 7 };
+  // }
 
   if (ques[0] != "1") {
     return { start: 1, end: 1 };
   } else {
-    if (ques[1] != "1") {
+    if (ques[1] != "1" && ques[1] != "3") {
       if (ques[3] != "1") {
         return { start: 1, end: 1 };
       } else {
