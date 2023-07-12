@@ -90,18 +90,30 @@ function createWindow() {
 
   ipcMain.on("writeLogs", (event, data) => {
     const today = new Date();
-    const filePath =
-      `C:\\Users\\${
-        data[0].annotatorEmail.match(/^([^@]*)@/)[1]
-      }\\Deloitte (O365D)\\` +
-      "RLHF UAT RM - General\\" +
-      `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}-${
-        data[0].languageChoice
-      }.csv`;
 
-    // const filePath = "data.csv";
+    let folderName = "";
+    if (data[0].annotatorEmail === "achandrayan@deloitte.com") {
+      folderName = `C:\\Users\\${data[0].annotatorEmail}\\Deloitte (O365D)\\RLHF UAT RM - General\\${data[0].annotatorEmail}`;
+    } else {
+      folderName = `C:\\Users\\${
+        data[0].annotatorEmail.match(/^([^@]*)@/)[1]
+      }\\Deloitte (O365D)\\RLHF UAT RM - General\\${data[0].annotatorEmail}`;
+    }
+
+    // console.log(folderName);
+
+    if (!fs.existsSync(folderName)) {
+      fs.mkdirSync(folderName, { recursive: true }, (err) => {
+        if (err) {
+          console.log("Location incorrect");
+        }
+      });
+    }
+    const filePath = `${folderName}/${today.getDate()}-${
+      today.getMonth() + 1
+    }-${today.getFullYear()}-${data[0].languageChoice}.csv`;
     const headers =
-      "Timestamp,POD Number,File Name,Annotator Email,Error Percentage,Language\n";
+      "Timestamp,POD Number,File Name,Annotator Email,Error Percentage,Language,Total time taken (minutes)\n";
 
     // Check if the CSV file exists
     const fileExists = fs.existsSync(filePath);

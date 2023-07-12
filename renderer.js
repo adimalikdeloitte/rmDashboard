@@ -4,6 +4,7 @@ let infoSetCounter = 1;
 let infoCounter = 1;
 let jsonData, originalData;
 let errorPercentage;
+let totalFileTime = 0;
 
 let arrForRankingStr = [];
 
@@ -12,6 +13,10 @@ document.getElementById("open-file-button").addEventListener("click", () => {
 });
 
 ipcRenderer.on("file-data", (event, data) => {
+  totalFileTime = 0;
+  setInterval(() => {
+    totalFileTime++;
+  }, 1000);
   jsonData = getData(data.data);
   originalData = data.data;
   fillContent(jsonData, data.fileName);
@@ -25,6 +30,15 @@ ipcRenderer.on("file-data", (event, data) => {
     document.getElementById(`mainContent`).style.display = `block`;
     document.getElementById(`noContent`).style.display = `none`;
   }
+
+  let tempLang = localStorage.getItem("languageChoice")?.toLowerCase();
+  tempLang !== "javascript" ? (tempLang += "-programming") : tempLang;
+  document.getElementById("compilerLink").addEventListener("click", () => {
+    window.open(
+      `https://www.programiz.com/${tempLang}/online-compiler/`,
+      "_blank"
+    );
+  });
 });
 
 function fillContent(data, fileName) {
@@ -124,13 +138,17 @@ function fillContent(data, fileName) {
           infoCounter++;
         }
       } else {
-        const numericInput = document.createElement("input");
-        numericInput.setAttribute("type", "number");
-        numericInput.setAttribute("placeholder", "Rating");
-        numericInput.setAttribute("max", "7");
-        numericInput.setAttribute("min", "1");
+        const numericInput = document.createElement("select");
         numericInput.setAttribute("id", `infoRadio${infoCounter++}`);
-        numericInput.value = v?.answer;
+        numericInput.setAttribute("class", "m-2");
+        for (let f = 1; f <= 7; f++) {
+          const optionsDropdown = document.createElement("option");
+          optionsDropdown.innerText = f;
+          optionsDropdown.setAttribute("value", f);
+          Number(v?.answer) === f &&
+            optionsDropdown.setAttribute("selected", true);
+          numericInput.appendChild(optionsDropdown);
+        }
 
         questionPara.appendChild(numericInput);
       }
@@ -158,6 +176,9 @@ function fillContent(data, fileName) {
   document.getElementById("timeTaken").value = Number(
     data?.notesObj["Time taken to complete the task (in mins)"]
   );
+
+  document.getElementById("annotatorName").value =
+    data?.notesObj["Annotator Name"];
 }
 
 function produceRankString(ratingsArr) {
@@ -383,6 +404,9 @@ function setFinalQuestions(occurrenceNumber) {
   jsonData.notesObj["Time taken to complete the task (in mins)"] =
     document.getElementById("timeTaken").value;
 
+  jsonData.notesObj["Annotator Name"] =
+    document.getElementById("annotatorName").value;
+
   const startIndex =
     findOccurrence(originalData, startDelimiter, occurrenceNumber) +
     startDelimiter.length;
@@ -396,11 +420,7 @@ function setFinalQuestions(occurrenceNumber) {
     originalData.slice(endIndex);
 }
 
-function setData() {
-  setPromptData(1);
-  setCompletion(jsonData.completionsArr?.length);
-  setFinalQuestions(jsonData.completionsArr?.length + 2);
-
+function checkEmptyValues() {
   // check if all fields are filled
   let flag = true;
   for (let x = 1; x <= jsonData.completionsArr?.length * 5; x++) {
@@ -441,9 +461,23 @@ function setData() {
     flag = false;
   }
 
-  if (flag === false) {
-    showSuccessAlert("Cannot update data : Please fill all fields !");
+  if (document.getElementById("annotatorName").value === "") {
+    console.log("Annotator Name not filled !");
+    flag = false;
+  }
+
+  return flag;
+}
+
+function setData() {
+  setPromptData(1);
+  setCompletion(jsonData.completionsArr?.length);
+  setFinalQuestions(jsonData.completionsArr?.length + 2);
+
+  if (checkEmptyValues() === false) {
+    showFailAlert("Cannot update data : Please fill all fields !");
   } else {
+    localStorage.setItem("annotatorName", jsonData?.notesObj["Annotator Name"]);
     setTimeout(() => {
       ipcRenderer.send("set-section", {
         newData: originalData,
@@ -455,7 +489,8 @@ function setData() {
 
 let languageChoice = localStorage.getItem("languageChoice") || "",
   annotatorEmail = localStorage.getItem("annotatorEmail") || "",
-  podNumber = localStorage.getItem("podNumber") || "";
+  podNumber = localStorage.getItem("podNumber") || "",
+  annotatorName = localStorage.getItem("annotatorName") || "";
 
 document.getElementById("annotatorEmail").value =
   localStorage.getItem("annotatorEmail") || "";
@@ -500,6 +535,58 @@ function onConfigChoice(choice, option) {
   ) {
     document.getElementById("filePicker").removeAttribute("style");
   }
+}
+
+function checkAbbreviations(notesObj) {
+  const regex = /\b[A-Z]{2,}\b/g; // Regex pattern for finding all caps words with at least two letters
+
+  const matches = notesObj[Object.keys(notesObj)[2]].match(regex);
+
+  return {
+    abbreviations: matches ? matches : [],
+    message:
+      '"Reason for ranking" contains the following abbreviations which are not allowed : ',
+  };
+}
+
+function checkLinesOfCode(completions) {
+  const max = 20;
+
+  var loc = [];
+
+  var pattern = /\`\`\`[\w\s]*\n([\s\S]*?)\`\`\`/gm;
+
+  completions.map((comp, index) => {
+    let codeBlocks = comp.answer.match(pattern);
+
+    let lines = [];
+
+    codeBlocks?.map((cB, idx) => {
+      lines.push(cB.split("\n").length - 2);
+    });
+
+    loc.push(lines);
+  });
+
+  var message = [];
+
+  loc.map((codes, i) => {
+    codes.map((cLines, j) => {
+      if (cLines > max && completions[i].question.questions[1].answer === "1") {
+        message.push(
+          "Code snippet " +
+            (j + 1) +
+            " of completion " +
+            String.fromCharCode(i + 65) +
+            " has more than " +
+            max +
+            " lines of code, and should be marked not executable."
+        );
+      }
+    });
+  });
+
+  return { loc, message };
 }
 
 function checkRating(completions) {
@@ -567,32 +654,55 @@ function checkRating(completions) {
 }
 
 function runChecks() {
-  const checksArr = checkRating(jsonData.completionsArr).errorList;
-  document.getElementById("ratingChecks").innerHTML = "";
-  checksArr.forEach((check) => {
-    const listItem = document.createElement("li");
-    listItem.style.color = "red";
-    listItem.innerText = check;
+  if (checkEmptyValues() === false) {
+    showFailAlert("Cannot run checks: please fill empty values !");
+  } else {
+    let checksArr = checkRating(jsonData.completionsArr).errorList;
+    const { message, abbreviations } = checkAbbreviations(jsonData.notesObj);
+    // const locMessage = checkLinesOfCode(jsonData.completionsArr).message;
+    if (abbreviations.length !== 0) {
+      checksArr.push(message + abbreviations);
+    }
 
-    document.getElementById("ratingChecks").appendChild(listItem);
-  });
+    // checksArr = [...checksArr, ...locMessage];
 
-  errorPercentage = (checksArr.length / 5) * 100;
-  document.getElementById(
-    "errorPercentage"
-  ).innerText = `Error Percentage : ${errorPercentage} %`;
+    document.getElementById("ratingChecks").innerHTML = "";
+    checksArr.forEach((check) => {
+      const listItem = document.createElement("li");
+      listItem.style.color = "red";
+      listItem.innerText = check;
 
-  let someData = {
-    timestamp: new Date(),
-    podNumber,
-    fileName: document.getElementById("fileName").innerText,
-    annotatorEmail,
-    errorPercentage,
-    languageChoice,
-  };
-  ipcRenderer.send("writeLogs", [someData]);
+      document.getElementById("ratingChecks").appendChild(listItem);
+    });
 
-  showSuccessAlert("Run checks successful !");
+    errorPercentage = ((checksArr.length / 10) * 100).toFixed(2);
+    document.getElementById(
+      "errorPercentage"
+    ).innerText = `Error Percentage : ${errorPercentage} %`;
+
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    let mm = today.getMonth() + 1; // Months start at 0!
+    let dd = today.getDate();
+
+    if (dd < 10) dd = "0" + dd;
+    if (mm < 10) mm = "0" + mm;
+
+    const formattedToday = dd + "/" + mm + "/" + yyyy;
+
+    let someData = {
+      timestamp: formattedToday,
+      podNumber,
+      fileName: document.getElementById("fileName").innerText,
+      annotatorEmail,
+      errorPercentage,
+      languageChoice,
+      totalFileTime: Math.floor(totalFileTime / 60),
+    };
+    ipcRenderer.send("writeLogs", [someData]);
+
+    showSuccessAlert("Run checks successful !");
+  }
 }
 
 function showSuccessAlert(message) {
@@ -614,3 +724,275 @@ function showSuccessAlert(message) {
     }
   }, 3000);
 }
+
+function showFailAlert(message) {
+  const alertHTML = `
+      <div id="failAlert" class="alert alert-danger alert-dismissible fade show" role="alert">
+        ${message}
+      </div>
+    `;
+
+  const alertContainer = document.getElementById("alertContainer");
+  alertContainer.innerHTML = "";
+  alertContainer.insertAdjacentHTML("beforeend", alertHTML);
+
+  setTimeout(function () {
+    const failAlert = document.getElementById("failAlert");
+    if (failAlert) {
+      failAlert.classList.remove("show");
+      failAlert.classList.add("fade");
+    }
+  }, 3000);
+}
+
+function checkRatingHelper(ques) {
+  if (ques[0] === "-") {
+    return { start: 1, end: 7 };
+  }
+
+  if (ques[1] === "3") {
+    return { start: 1, end: 7 };
+  }
+
+  if (ques[0] != "1") {
+    return { start: 1, end: 1 };
+  } else {
+    if (ques[1] != "1") {
+      if (ques[3] != "1") {
+        return { start: 1, end: 1 };
+      } else {
+        return { start: 1, end: 4 };
+      }
+    } else {
+      if (ques[3] != "1") {
+        return { start: 1, end: 4 };
+      } else {
+        return { start: 5, end: 7 };
+      }
+    }
+  }
+}
+
+// remove unwanted options from rating
+document.addEventListener("click", (e) => {
+  if (e.target.id.includes("infoRadio")) {
+    const idNum = Number(e.target.id.substring(9));
+    if (idNum <= 12) {
+      const ques = [];
+      if (document.getElementById("infoRadio1").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio2").checked) {
+        ques.push("2");
+      }
+
+      if (document.getElementById("infoRadio3").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio4").checked) {
+        ques.push("2");
+      } else if (document.getElementById("infoRadio5").checked) {
+        ques.push("3");
+      }
+
+      // insert blank for options 6-10
+      ques.push("-");
+
+      if (document.getElementById("infoRadio11").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio12").checked) {
+        ques.push("2");
+      }
+
+      const { start, end } = checkRatingHelper(ques);
+
+      const infoRadio = document.getElementById("infoRadio13");
+      infoRadio.innerHTML = "";
+      for (let i = start; i <= end; i++) {
+        const allowedOption = document.createElement("option");
+        allowedOption.innerText = i;
+        allowedOption.value = i;
+
+        infoRadio.appendChild(allowedOption);
+      }
+    } else if (idNum > 13 && idNum <= 25) {
+      const ques = [];
+      if (document.getElementById("infoRadio14").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio15").checked) {
+        ques.push("2");
+      }
+
+      if (document.getElementById("infoRadio16").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio17").checked) {
+        ques.push("2");
+      } else if (document.getElementById("infoRadio18").checked) {
+        ques.push("3");
+      }
+
+      // insert blank for options 19-23
+      ques.push("-");
+
+      if (document.getElementById("infoRadio24").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio25").checked) {
+        ques.push("2");
+      }
+
+      const { start, end } = checkRatingHelper(ques);
+
+      const infoRadio = document.getElementById("infoRadio26");
+      infoRadio.innerHTML = "";
+      for (let i = start; i <= end; i++) {
+        const allowedOption = document.createElement("option");
+        allowedOption.innerText = i;
+        allowedOption.value = i;
+
+        infoRadio.appendChild(allowedOption);
+      }
+    } else if (idNum > 26 && idNum <= 38) {
+      const ques = [];
+      if (document.getElementById("infoRadio27").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio28").checked) {
+        ques.push("2");
+      }
+
+      if (document.getElementById("infoRadio29").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio30").checked) {
+        ques.push("2");
+      } else if (document.getElementById("infoRadio31").checked) {
+        ques.push("3");
+      }
+
+      // insert blank for options 32-36
+      ques.push("-");
+
+      if (document.getElementById("infoRadio37").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio38").checked) {
+        ques.push("2");
+      }
+
+      const { start, end } = checkRatingHelper(ques);
+
+      const infoRadio = document.getElementById("infoRadio39");
+      infoRadio.innerHTML = "";
+      for (let i = start; i <= end; i++) {
+        const allowedOption = document.createElement("option");
+        allowedOption.innerText = i;
+        allowedOption.value = i;
+
+        infoRadio.appendChild(allowedOption);
+      }
+    } else if (idNum > 39 && idNum <= 51) {
+      const ques = [];
+      if (document.getElementById("infoRadio40").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio41").checked) {
+        ques.push("2");
+      }
+
+      if (document.getElementById("infoRadio42").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio43").checked) {
+        ques.push("2");
+      } else if (document.getElementById("infoRadio44").checked) {
+        ques.push("3");
+      }
+
+      // insert blank for options 45-49
+      ques.push("-");
+
+      if (document.getElementById("infoRadio50").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio51").checked) {
+        ques.push("2");
+      }
+
+      const { start, end } = checkRatingHelper(ques);
+
+      const infoRadio = document.getElementById("infoRadio52");
+      infoRadio.innerHTML = "";
+      for (let i = start; i <= end; i++) {
+        const allowedOption = document.createElement("option");
+        allowedOption.innerText = i;
+        allowedOption.value = i;
+
+        infoRadio.appendChild(allowedOption);
+      }
+    } else if (idNum > 52 && idNum <= 64) {
+      const ques = [];
+      if (document.getElementById("infoRadio53").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio54").checked) {
+        ques.push("2");
+      }
+
+      if (document.getElementById("infoRadio55").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio56").checked) {
+        ques.push("2");
+      } else if (document.getElementById("infoRadio57").checked) {
+        ques.push("3");
+      }
+
+      // insert blank for options 58-62
+      ques.push("-");
+
+      if (document.getElementById("infoRadio63").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio64").checked) {
+        ques.push("2");
+      }
+
+      const { start, end } = checkRatingHelper(ques);
+
+      const infoRadio = document.getElementById("infoRadio65");
+      infoRadio.innerHTML = "";
+      for (let i = start; i <= end; i++) {
+        const allowedOption = document.createElement("option");
+        allowedOption.innerText = i;
+        allowedOption.value = i;
+
+        infoRadio.appendChild(allowedOption);
+      }
+    } else if (idNum > 65 && idNum <= 77) {
+      const ques = [];
+      if (document.getElementById("infoRadio66").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio67").checked) {
+        ques.push("2");
+      }
+
+      if (document.getElementById("infoRadio68").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio69").checked) {
+        ques.push("2");
+      } else if (document.getElementById("infoRadio70").checked) {
+        ques.push("3");
+      }
+
+      // insert blank for options 71-75
+      ques.push("-");
+
+      if (document.getElementById("infoRadio76").checked) {
+        ques.push("1");
+      } else if (document.getElementById("infoRadio77").checked) {
+        ques.push("2");
+      }
+
+      const { start, end } = checkRatingHelper(ques);
+
+      const infoRadio = document.getElementById("infoRadio78");
+      infoRadio.innerHTML = "";
+      for (let i = start; i <= end; i++) {
+        const allowedOption = document.createElement("option");
+        allowedOption.innerText = i;
+        allowedOption.value = i;
+
+        infoRadio.appendChild(allowedOption);
+      }
+    }
+  }
+});

@@ -133,8 +133,8 @@
       </div>
 
       <div id="fileContent" style="display: none" class="mt-5">
-        <div class="row">
-          <div class="col-8">
+        <div class="row align-items-center">
+          <div class="col-7">
             <p>
               You are working on the file :
               <strong id="fileName">file99.txt</strong>
@@ -150,7 +150,7 @@
               <strong id="prompt">No Data</strong>
             </p>
           </div>
-          <div class="col-4">
+          <div class="col-3">
             <h6>Reject this annotation ?</h6>
 
             <div class="form-check">
@@ -179,6 +179,9 @@
               </label>
             </div>
           </div>
+          <div class="col-2">
+            <button id="compilerLink" class="btn btn-dark">Open IDE</button>
+          </div>
         </div>
 
         <hr />
@@ -201,20 +204,19 @@
               1. Ranking generated as per ratings:
               <strong id="ranking">No Data Yet</strong>
             </p>
-            <strong style="font-size: 10px"
-              >* Note: Confidence rating is accepted in a range of (7-10) as per
-              Client</strong
-            >
+
             <p>
               2. Confidence of Ranking [1-10].1 means not confident at all, 10
               means very confident.
-              <input
-                id="confidence"
-                type="number"
-                max="10"
-                min="1"
-                placeholder="Confidence"
-              />
+              <select id="confidence">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+              </select>
             </p>
 
             <p>3. Reason for ranking. (Free text)</p>
@@ -227,7 +229,15 @@
               ></textarea>
             </grammarly-editor-plugin>
             <p>
-              4. Time taken to complete the task (in mins)
+              4. Annotator Name
+              <input
+                id="annotatorName"
+                type="text"
+                placeholder="Annotator Name"
+              />
+            </p>
+            <p>
+              5. Time taken to complete the task (in mins)
               <input
                 id="timeTaken"
                 type="number"
@@ -259,7 +269,7 @@
 
     <br />
     <div style="text-align: center">
-      <strong>v1.5.0</strong>
+      <strong>v2.2.0</strong>
     </div>
 
     <br />
