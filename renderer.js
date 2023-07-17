@@ -196,9 +196,11 @@ function produceRankString(ratingsArr) {
     }
   }
 
-  if (!rankedStr.includes(">") && rankedArr[0][1] === 1) {
-    rankedStr = ">" + rankedStr;
-  }
+  // if (!rankedStr.includes(">") && rankedArr[0][1] === 1) {
+
+  //   rankedStr = ">" + rankedStr;
+
+  // }
 
   return rankedStr;
 }

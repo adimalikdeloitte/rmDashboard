@@ -103,8 +103,6 @@ function createWindow() {
       }\\Deloitte (O365D)\\RLHF UAT RM - General\\${data[0].annotatorEmail}`;
     }
 
-    // console.log(folderName);
-
     if (!fs.existsSync(folderName)) {
       fs.mkdirSync(folderName, { recursive: true }, (err) => {
         if (err) {
