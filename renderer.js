@@ -8,6 +8,216 @@ let totalFileTime = 0;
 
 let arrForRankingStr = [];
 
+const annotatorEmailToNameMapping = {
+  "akassaha@deloitte.com": "Akash Saha",
+  "anudasgupta@deloitte.com": "Anurag Dasgupta",
+  "arnabdey@deloitte.com": "Arnab Dey",
+  "sadutta@deloitte.com": "Saunak Dutta",
+  "poukhan@deloitte.com": "Pousali Khan",
+  "soumyaghosh@deloitte.com": "Soumya Ghosh",
+  "rsharma28@deloitte.com": "Rishabh Sharma",
+  "abhishekkh@deloitte.com": "Abhishek Khandelwal",
+  "abhisverma@deloitte.com": "Abhishek Verma",
+  "adimalik@deloitte.com": "Aditya Malik",
+  "ishigarg@deloitte.com": "Ishika Garg",
+  "bsrivastava@deloitte.com": "Bhuvaneshvar Srivastava",
+  "jsingh6@deloitte.com": "Jyoti Singh",
+  "manuyadav@deloitte.com": "Manujay Yadav",
+  "jhsharma@deloitte.com": "Jhalak Sharma",
+  "kvaish@deloitte.com": "Kashish Vaish",
+  "abhishektyagi@deloitte.com": "Abhishek Tyagi",
+  "rimakkapati@deloitte.com": "Rishitha Makkapati",
+  "lsaisravani@deloitte.com": "SaiSravani Lakkamraju",
+  "sviriyala@deloitte.com": "Santosh Viriyala",
+  "akappatrala@deloitte.com": "Anitha Kappatrala",
+  "uyadav@deloitte.com": "Ujjwal Yadav",
+  "manchandrasekaran@deloitte.com": "Manikandan Chandrasekaran",
+  "dg2@deloitte.com": "Divya G",
+  "amanimuthu@deloitte.com": "Arun Manimuthu",
+  "sharaagarwal@deloitte.com": "Sharad Agarwal",
+  "artandon@deloitte.com": "Arpit Tandon",
+  "himaarora@deloitte.com": "Himanshu Arora",
+  "modey@deloitte.com": "Monasish Dey",
+  "kbhadra@deloitte.com": "Kush Bhadra",
+  "ronvarma@deloitte.com": "Ronak Varma",
+  "shivanisharma@deloitte.com": "Shivani Sharma",
+  "akmahale@deloitte.com": "Akanksha Mahale",
+  "bmirakor@deloitte.com": "Bhagyashree Twatappa Mirakor",
+  "pranavchauhan@deloitte.com": "Pranav Bankelal Chauhan",
+  "amaile@deloitte.com": "Ashvini Maile",
+  "sansarkar@deloitte.com": "Sanju Sarkar",
+  "sabere@deloitte.com": "Sanjay Bere",
+  "rmultani@deloitte.com": "Rishika Multani",
+  "spatil3@deloitte.com": "Shubham Patil",
+  "shsonar@deloitte.com": "Shubhada Sonar",
+  "deepshah@deloitte.com": "Deep Shah",
+  "pmerani@deloitte.com": "Preity Merani",
+  "rutwshah@deloitte.com": "Rutwik Shah",
+  "svasekar@deloitte.com": "Suvarna Vasekar",
+  "rsingh29@deloitte.com": "Raj Singh",
+  "ppuranik@deloitte.com": "Pranav Puranik",
+  "mpanjabi@deloitte.com": "Maitreya Anil Panjabi",
+  "rupsonawane@deloitte.com": "Rupesh Sonawane",
+  "umyadav@deloitte.com": "Umakant Yadav",
+  "amittal2@deloitte.com": "Aditi Mittal",
+  "abgs@deloitte.com": "Abhiram GS",
+  "gvalappil@deloitte.com": "Gopika Valappil",
+  "anp1@deloitte.com": "Anil Kumar P",
+  "pakhurana@deloitte.com": "Parinita Khurana",
+  "pkar@deloitte.com": "Priyabrata Kar",
+  "prr@deloitte.com": "Priyanka R",
+  "shshaji@deloitte.com": "Shinoy Shaji",
+  "sivasans@deloitte.com": "Sivasankari S",
+  "rajniskumar@deloitte.com": "Rajnish Kumar",
+  "swraj@deloitte.com": "Swetha Raj",
+  "ssharma36@deloitte.com": "Swati Sharma",
+  "abhishekm@deloitte.com": "Abhishek Mukherjee",
+  "bhmukherjee@deloitte.com": "Bhaskar Mukherjee",
+  "mtalha@deloitte.com": "Talha Mohammed",
+  "bnidamarthy@deloitte.com": "Bhavana Nidamarthy",
+  "abdurkhan@deloitte.com": "Abdur Rehman Khan",
+  "sjyothish@deloitte.com": "Shreyas Jyothish",
+  "viraman@deloitte.com": "Vignesh Raman",
+  "dhramu@deloitte.com": "Ramu Dudhyala",
+  "psulikeri@deloitte.com": "Praveenkumar Sulikeri",
+  "ankitkumar@deloitte.com": "Ankit Kumar",
+  "pgyanvi@deloitte.com": "Gyanvi Pandey",
+  "tanajaiswal@deloitte.com": "Tanaya Jaiswal",
+  "navnekumar@deloitte.com": "NAVNEET KUMAR",
+  "nkumar21@deloitte.com": "Naveen Kumar",
+  "aaypatil@deloitte.com": "Aayush Patil",
+  "anjasaini@deloitte.com": "Anjali Saini",
+  "paybasu@deloitte.com": "Payal Basu",
+  "anna1@deloitte.com": "Anju NA",
+  "asinha3@deloitte.com": "Ankita Sinha",
+  "rkhajuria@deloitte.com": "Rahul Khajuria",
+  "sharsingh@deloitte.com": "Shardendu Singh",
+  "vdwivedi@deloitte.com": "Vinit Dwivedi",
+  "shimittal@deloitte.com": "Shiwani Mittal",
+  "aakashk@deloitte.com": "Aakash K",
+  "simransingh@deloitte.com": "Simran Singh",
+  "shruchandra@deloitte.com": "Shruti Chandra",
+  "aadapa@deloitte.com": "Anusha Adapa",
+  "tpotturi@deloitte.com": "Tarun Kumar P",
+  "vareti@deloitte.com": "Vatsalya Sai Areti",
+  "nareddy@deloitte.com": "Gangireddygari Naveen Reddy",
+  "vtummala@deloitte.com": "Vijaya Pardha Saradhi Tummala",
+  "fpinjari@deloitte.com": "Fathima Pinjari",
+  "sakhan@deloitte.com": "Saif Ali Khan",
+  "haderu@deloitte.com": "Harish Aderu",
+  "salshaik@deloitte.com": "Salman Shaik",
+  "gudkumar@deloitte.com": "Ajay Kumar Gudekal",
+  "nganta@deloitte.com": "Neelaprasad Ganta",
+  "nimrawat@deloitte.com": "Nimit Rawat",
+  "sussv@deloitte.com": "SV Sushma",
+  "srivm@deloitte.com": "M Srivathsa",
+  "achakravarthy@deloitte.com": "Abhinandan Chakravarthy",
+  "kmsrivastava@deloitte.com": "Aditi KM Srivastava",
+  "anjchauhan@deloitte.com": "Anjali Chauhan",
+  "khasinaparveen@deloitte.com": "Haseena Parveen Kattubadi",
+  "shdeore@deloitte.com": "Shubham Deore",
+  "aksonawane@deloitte.com": "Akshay Sonawane",
+  "anberry@deloitte.com": "Anushka Berry",
+  "devakashyap@deloitte.com": "Devansh Kashyap",
+  "ekmishra@deloitte.com": "Ekta Mishra",
+  "mshendkar@deloitte.com": "Mayur Shendkar",
+  "svenkat2@deloitte.com": "Venkat S",
+  "shpadhy@deloitte.com": "Shikhar Padhy",
+  "kasoni@deloitte.com": "Kartik Soni",
+  "ggala@deloitte.com": "Greeshma Gala",
+  "pghavle@deloitte.com": "Pawan Ghavle",
+  "rohitmittal@deloitte.com": "Rohit Mittal",
+  "athmathur@deloitte.com": "Atharv Mathur",
+  "shkolte@deloitte.com": "Shruti Kolte",
+  "umaroju@deloitte.com": "Uday Maroju",
+  "amishra15@deloitte.com": "Aditya Mishra",
+  "achandrayan@deloitte.com": "Apoorva Chandrayan",
+  "shrutnair@deloitte.com": "Shruti Nair",
+  "nsarda@deloitte.com": "Namrata Sarda",
+  "dmakani@deloitte.com": "Dewang Makani",
+  "hmalnika@deloitte.com": "Hitarth Malnika",
+  "shreyagupta1@deloitte.com": "Shreya Gupta",
+  "sakchaudhari@deloitte.com": "Sakshi Chaudhari",
+  "ltirthani@deloitte.com": "Lavesh Tirthani",
+  "vdevjee@deloitte.com": "Vismay Devjee",
+  "arunanand@deloitte.com": "Arunima Anand",
+  "rchoithramani@deloitte.com": "Ria Choithramani",
+  "aditkale@deloitte.com": "Aditi Kale",
+  "jbhalchim@deloitte.com": "Jayesh Bhalchim",
+  "shrsurve@deloitte.com": "Shruti Surve",
+  "amkamat@deloitte.com": "Amruta Kamat",
+  "amrbose@deloitte.com": "Amrita Bose",
+  "pmore@deloitte.com": "Pratik More",
+  "shrkale@deloitte.com": "Shreyas Kale",
+  "prkoravi@deloitte.com": "Prathamesh Koravi",
+  "bhavpatil@deloitte.com": "Bhavana Patil",
+  "amartiwari@deloitte.com": "Amar Tiwari",
+  "anshastri@deloitte.com": "Aniruddh Shastri",
+  "nthadaboina@deloitte.com": "Nithin Thadaboina",
+  "vikchavan@deloitte.com": "Vikrant Chavan",
+  "wakahmed@deloitte.com": "Wakhee Ahmed",
+  "rahulprasad@deloitte.com": "Rahul Prasad",
+  "rsingh24@deloitte.com": "Rohit Singh",
+  "gaurshukla@deloitte.com": "Gaurav Shukla",
+  "harshiaggarwal@deloitte.com": "Harshit Aggarwal",
+  "lovelsingh@deloitte.com": "Lovely Singh",
+  "ravchauhan@deloitte.com": "Ravina Chauhan",
+  "arybanerjee@deloitte.com": "Aryamaan Banerjee",
+  "saummittal@deloitte.com": "Saumay Mittal",
+  "zaiqureshi@deloitte.com": "Zaid Abdullah Qureshi",
+  "simran@deloitte.com": "Imran Shaikh",
+  "manipatil@deloitte.com": "Manish Patil",
+  "jinjoseph@deloitte.com": "Jinson Joseph",
+  "gnunia@deloitte.com": "Gourav Nunia",
+  "atrdas@deloitte.com": "Atreyee Das",
+  "nchinthakayala@deloitte.com": "Nagarjuna Chinthakayala",
+  "rshekher@deloitte.com": "Raj Shekher",
+  "sukr@deloitte.com": "Sushmitha KR",
+  "nisankhe@deloitte.com": "Nidhi Sankhe",
+  "blingala@deloitte.com": "Bhargav Lingala",
+  "ksnair@deloitte.com": "Krishna S Nair",
+  "bmehra@deloitte.com": "Bhuvan Mehra",
+  "aeswarasatyaveni@deloitte.com": "Eswara Satyaveni Arnepalli",
+  "jjannu@deloitte.com": "Jyothi Jannu",
+  "samsaxena@deloitte.com": "Sameer Saxena",
+  "samyagupta@deloitte.com": "Samyam Gupta",
+  "scshekar@deloitte.com": "Suprith C Shekar",
+  "soumysen@deloitte.com": "Soumyajit Sen",
+  "jsabarinathanj@deloitte.com": "Sabarinathan J Jenish",
+  "dnagasuresh@deloitte.com": "Dasari Naga Suresh",
+  "dchaubey@deloitte.com": "Divya Chaubey",
+  "agupta43@deloitte.com": "Anurag Gupta",
+  "mbora@deloitte.com": "Mayur Bhargab Bora",
+  "aksachdeva@deloitte.com": "Akshita Sachdeva",
+  "dhadiga@deloitte.com": "Dharini Adiga",
+  "visnayak@deloitte.com": "Vishal Nayak",
+  "kasubramanian@deloitte.com": "Kanmani Subramanian",
+  "mrayadav@deloitte.com": "Mragank Yadav",
+  "skumar34@deloitte.com": "Shailesh Kumar",
+  "pranavjain@deloitte.com": "Pranav Jain",
+  "mansahni@deloitte.com": "Manmeet Sahni",
+  "shvats@deloitte.com": "Shubham Vats",
+  "maymukherjee@deloitte.com": "Mayukh Mukherjee",
+  "kurkumar@deloitte.com": "Anil Kumar Kuricheti",
+  "ramchakraborty@deloitte.com": "Ramyanath Chakraborty",
+  "sbhagavathi@deloitte.com": "Saraswathi Bhagavathi",
+  "nkonda@deloitte.com": "Naveen Konda",
+  "aborse@deloitte.com": "Ankush Borse",
+  "subhamsaha@deloitte.com": "Subham Saha",
+  "anuracharya@deloitte.com": "Anurag Acharya",
+  "shutripathi@deloitte.com": "Shubham Tripathi",
+  "sreddynaidu@deloitte.com": "Sunkara Reddy Naidu",
+  "damani@deloitte.com": "Dhamar Amani",
+  "sragipani@deloitte.com": "Sai Thapan Ragipani",
+  "sharm@deloitte.com": "Sharath M",
+  "ravisharma@deloitte.com": "Ravi Sharma",
+  "alivjoshi@deloitte.com": "Aliva Joshi",
+  "maysingh@deloitte.com": "Mayank Singh",
+  "plall@deloitte.com": "Prasoon Lall",
+  "saajha@deloitte.com": "Saaket Jha",
+  "veethota@deloitte.com": "Veereswarao Thota",
+};
+
 document.getElementById("open-file-button").addEventListener("click", () => {
   ipcRenderer.send("open-file-dialog");
 });
@@ -25,6 +235,14 @@ ipcRenderer.on("file-data", (event, data) => {
 
   localStorage.setItem("annotatorEmail", annotatorEmail);
   localStorage.setItem("podNumber", podNumber);
+
+  localStorage.setItem(
+    "annotatorName",
+    annotatorEmailToNameMapping[annotatorEmail]
+  );
+
+  document.getElementById("annotatorName").value =
+    annotatorEmailToNameMapping[annotatorEmail];
 
   if (document.getElementById("rejectAnnotation2").checked) {
     document.getElementById(`mainContent`).style.display = `block`;
@@ -690,24 +908,15 @@ function runChecks() {
       "errorPercentage"
     ).innerText = `Error Percentage : ${errorPercentage} %`;
 
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    let mm = today.getMonth() + 1; // Months start at 0!
-    let dd = today.getDate();
-
-    if (dd < 10) dd = "0" + dd;
-    if (mm < 10) mm = "0" + mm;
-
-    const formattedToday = dd + "/" + mm + "/" + yyyy;
-
     let someData = {
-      timestamp: formattedToday,
+      timestamp: new Date(),
       podNumber,
       fileName: document.getElementById("fileName").innerText,
       annotatorEmail,
-      errorPercentage,
+      errorPercentage: Number(errorPercentage),
       languageChoice,
       totalFileTime: Math.floor(totalFileTime / 60),
+      taskChoice: "RM",
     };
     ipcRenderer.send("writeLogs", [someData]);
 
@@ -1006,3 +1215,11 @@ document.addEventListener("click", (e) => {
     }
   }
 });
+
+function removeDoubleQuotes(inputElement) {
+  const inputValue = inputElement.value;
+  const sanitizedValue = inputValue.replace(/"/g, ""); // Remove all double quotes
+
+  // Update the value of the text box with the sanitized input
+  inputElement.value = sanitizedValue;
+}

@@ -6,6 +6,10 @@ const {
   nativeTheme,
 } = require("electron");
 const fs = require("fs");
+const axios = require("axios");
+const https = require("https");
+// Configure the agent with rejectUnauthorized set to false
+const agent = new https.Agent({ rejectUnauthorized: false });
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -88,53 +92,58 @@ function createWindow() {
     return values.map((value) => `"${value}"`).join(",") + "\n";
   }
 
+  function padTo2Digits(num) {
+    return num.toString().padStart(2, "0");
+  }
+
+  function formatDate(date) {
+    return (
+      [
+        date.getFullYear(),
+        padTo2Digits(date.getMonth() + 1),
+        padTo2Digits(date.getDate()),
+      ].join("-") +
+      " " +
+      [
+        padTo2Digits(date.getHours()),
+        padTo2Digits(date.getMinutes()),
+        padTo2Digits(date.getSeconds()),
+      ].join(":")
+    );
+  }
+
   ipcMain.on("writeLogs", (event, data) => {
-    const today = new Date();
+    const dummyData = {
+      timestamp: formatDate(new Date()),
+      podNumber: Number(data[0].podNumber),
+      fileName: data[0].fileName,
+      annotatorEmail: data[0].annotatorEmail,
+      errorPercentage: data[0].errorPercentage,
+      language: data[0].languageChoice,
+      totalTimeTaken: data[0].totalFileTime,
+      task: data[0].taskChoice,
+    };
 
-    let folderName = "";
-    if (
-      data[0].annotatorEmail === "achandrayan@deloitte.com" ||
-      data[0].annotatorEmail === "arunanand@deloitte.com"
-    ) {
-      folderName = `C:\\Users\\${data[0].annotatorEmail}\\Deloitte (O365D)\\RLHF UAT RM - General\\${data[0].annotatorEmail}`;
-    } else {
-      folderName = `C:\\Users\\${
-        data[0].annotatorEmail.match(/^([^@]*)@/)[1]
-      }\\Deloitte (O365D)\\RLHF UAT RM - General\\${data[0].annotatorEmail}`;
-    }
+    // Set the headers for raw JSON
+    const httpheaders = {
+      "Content-Type": "application/json",
+    };
 
-    if (!fs.existsSync(folderName)) {
-      fs.mkdirSync(folderName, { recursive: true }, (err) => {
-        if (err) {
-          console.log("Location incorrect");
-        }
+    const axiosInstance = axios.create({
+      httpsAgent: agent,
+    });
+
+    // Send POST request with raw JSON data
+    axiosInstance
+      .post("https://rlhfbackend.onrender.com/records", dummyData, {
+        headers: httpheaders,
+      })
+      .then((response) => {
+        console.log("Response:", response.data);
+      })
+      .catch((error) => {
+        console.error("Error: ", error);
       });
-    }
-    const filePath = `${folderName}/${today.getDate()}-${
-      today.getMonth() + 1
-    }-${today.getFullYear()}-${data[0].languageChoice}.csv`;
-    const headers =
-      "Timestamp,POD Number,File Name,Annotator Email,Error Percentage,Language,Total time taken (minutes)\n";
-
-    // Check if the CSV file exists
-    const fileExists = fs.existsSync(filePath);
-
-    // Determine the content to be appended
-    let csvContent = "";
-    if (!fileExists) {
-      csvContent += headers;
-    }
-    data.forEach((obj) => {
-      csvContent += objectToCsvRow(obj);
-    });
-
-    fs.appendFile(filePath, csvContent, "utf8", (err) => {
-      if (err) {
-        console.error("Error creating CSV file:", err);
-      } else {
-        console.log("CSV file created successfully.");
-      }
-    });
   });
 }
 

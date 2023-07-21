@@ -229,6 +229,7 @@
                 rows="5"
                 class="p-3 w-100"
                 placeholder="Reason for ranking ..."
+                oninput="removeDoubleQuotes(this)"
               ></textarea>
             </grammarly-editor-plugin>
             <p>
@@ -237,6 +238,7 @@
                 id="annotatorName"
                 type="text"
                 placeholder="Annotator Name"
+                readonly
               />
             </p>
             <p>
@@ -272,7 +274,7 @@
 
     <br />
     <div style="text-align: center">
-      <strong>v2.4.0</strong>
+      <strong>v2.6.0</strong>
     </div>
 
     <br />
