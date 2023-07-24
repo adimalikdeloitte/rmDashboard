@@ -122,6 +122,7 @@ function createWindow() {
       language: data[0].languageChoice,
       totalTimeTaken: data[0].totalFileTime,
       task: data[0].taskChoice,
+      timeLog: data[0].timeLog,
     };
 
     // Set the headers for raw JSON

@@ -5,6 +5,10 @@ let infoCounter = 1;
 let jsonData, originalData;
 let errorPercentage;
 let totalFileTime = 0;
+let timeLog = {
+  startTime: "",
+  completionEndTimes: {},
+};
 
 let arrForRankingStr = [];
 
@@ -227,6 +231,7 @@ ipcRenderer.on("file-data", (event, data) => {
   setInterval(() => {
     totalFileTime++;
   }, 1000);
+  timeLog.startTime = Date.now();
   jsonData = getData(data.data);
   originalData = data.data;
   fillContent(jsonData, data.fileName);
@@ -358,6 +363,11 @@ function fillContent(data, fileName) {
       } else {
         const numericInput = document.createElement("select");
         numericInput.setAttribute("id", `infoRadio${infoCounter++}`);
+
+        numericInput.addEventListener("change", () => {
+          updateTimeLog(String.fromCharCode(j + 65));
+        });
+
         numericInput.setAttribute("class", "m-2");
         for (let f = 1; f <= 7; f++) {
           const optionsDropdown = document.createElement("option");
@@ -377,6 +387,12 @@ function fillContent(data, fileName) {
 
     // append completion container to outer container
     completionsContainer.appendChild(completionContainer);
+  }
+
+  function updateTimeLog(id) {
+    const millis = Date.now() - timeLog.startTime;
+    // mins elapsed
+    timeLog.completionEndTimes[id] = Math.floor(millis / 60000);
   }
 
   // fill final questions
@@ -917,6 +933,7 @@ function runChecks() {
       languageChoice,
       totalFileTime: Math.floor(totalFileTime / 60),
       taskChoice: "RM",
+      timeLog: timeLog.completionEndTimes,
     };
     ipcRenderer.send("writeLogs", [someData]);
 
