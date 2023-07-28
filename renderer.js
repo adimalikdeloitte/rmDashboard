@@ -635,8 +635,9 @@ function setFinalQuestions(occurrenceNumber) {
   jsonData.notesObj[
     "Confidence of Ranking [1-10].1 means not confident at all, 10 means very confident."
   ] = document.getElementById("confidence").value;
-  jsonData.notesObj["Reason for ranking. (Free text)"] =
-    document.getElementById("reason").value;
+  jsonData.notesObj["Reason for ranking. (Free text)"] = document
+    .getElementById("reason")
+    .value.replace(/[^\x00-\x7F]/g, "");
   jsonData.notesObj["Time taken to complete the task (in mins)"] =
     document.getElementById("timeTaken").value;
 

@@ -40,7 +40,7 @@ function createWindow() {
       .then((result) => {
         if (!result.canceled && result.filePaths.length > 0) {
           currFilePath = result.filePaths[0];
-          fs.readFile(result.filePaths[0], "latin1", (err, data) => {
+          fs.readFile(result.filePaths[0], "utf-8", (err, data) => {
             if (err) {
               console.error("An error occurred while reading the file:", err);
               return;
