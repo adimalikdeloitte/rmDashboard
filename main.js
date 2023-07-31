@@ -11,6 +11,9 @@ const https = require("https");
 // Configure the agent with rejectUnauthorized set to false
 const agent = new https.Agent({ rejectUnauthorized: false });
 
+// const URL = "http://localhost:3000/";
+const URL = "https://rlhfbackend.onrender.com/";
+
 function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1200,
@@ -30,6 +33,32 @@ function createWindow() {
 
   let currFilePath = "";
 
+  const checkFile = (fname) =>
+    new Promise((resolve) => {
+      const httpheaders = {
+        "Content-Type": "application/json",
+      };
+      const axiosInstance = axios.create({
+        httpsAgent: agent,
+      });
+      axiosInstance
+        .post(
+          URL + "check-file",
+          { fileName: fname },
+          {
+            headers: httpheaders,
+          }
+        )
+        .then((response) => {
+          // console.log("Response: ", response.data);
+          resolve({ response: response.data });
+        })
+        .catch((error) => {
+          // console.error("Error: ", error);
+          resolve({ response: error });
+        });
+    });
+
   // Event listener for the open-file-dialog
   ipcMain.on("open-file-dialog", (event) => {
     dialog
@@ -40,7 +69,7 @@ function createWindow() {
       .then((result) => {
         if (!result.canceled && result.filePaths.length > 0) {
           currFilePath = result.filePaths[0];
-          fs.readFile(result.filePaths[0], "utf-8", (err, data) => {
+          fs.readFile(result.filePaths[0], "utf-8", async (err, data) => {
             if (err) {
               console.error("An error occurred while reading the file:", err);
               return;
@@ -49,7 +78,10 @@ function createWindow() {
             const lastIndex = path.lastIndexOf("\\");
             const fileName = path.slice(lastIndex + 1);
 
-            const finalData = { fileName, data };
+            const fileCheck = await checkFile(fileName);
+            console.log({ fileCheck });
+
+            const finalData = { fileName, data, fileCheck: fileCheck.response };
             event.sender.send("file-data", finalData);
           });
         }
@@ -136,7 +168,32 @@ function createWindow() {
 
     // Send POST request with raw JSON data
     axiosInstance
-      .post("https://rlhfbackend.onrender.com/records", dummyData, {
+      .post(URL + "records", dummyData, {
+        headers: httpheaders,
+      })
+      .then((response) => {
+        console.log("Response:", response.data);
+      })
+      .catch((error) => {
+        console.error("Error: ", error);
+      });
+  });
+
+  ipcMain.on("writeRejectionLogs", (event, data) => {
+    const payload = data[0];
+
+    // Set the headers for raw JSON
+    const httpheaders = {
+      "Content-Type": "application/json",
+    };
+
+    const axiosInstance = axios.create({
+      httpsAgent: agent,
+    });
+
+    // Send POST request with raw JSON data
+    axiosInstance
+      .post(URL + "log-rejection", payload, {
         headers: httpheaders,
       })
       .then((response) => {

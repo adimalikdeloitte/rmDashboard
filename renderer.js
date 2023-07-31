@@ -9,6 +9,9 @@ let timeLog = {
   startTime: "",
   completionEndTimes: {},
 };
+let taskChoice = "RM";
+let isGatekeeper =
+  localStorage.getItem("isGatekeeper") === "true" ? true : false;
 
 let arrForRankingStr = [];
 
@@ -223,6 +226,16 @@ const annotatorEmailToNameMapping = {
 };
 
 document.getElementById("open-file-button").addEventListener("click", () => {
+  if (
+    document.getElementById("annotatorEmail").value === "" ||
+    document.getElementById("podNumber").value === "" ||
+    (document.getElementById("languageChoiceJava").checked === false &&
+      document.getElementById("languageChoiceJavascript").checked === false &&
+      document.getElementById("languageChoicePython").checked === false)
+  ) {
+    showFailAlert("Please enter Email, POD number and choice of Language");
+    return;
+  }
   ipcRenderer.send("open-file-dialog");
 });
 
@@ -241,17 +254,41 @@ ipcRenderer.on("file-data", (event, data) => {
   localStorage.setItem("annotatorEmail", annotatorEmail);
   localStorage.setItem("podNumber", podNumber);
 
-  localStorage.setItem(
-    "annotatorName",
-    annotatorEmailToNameMapping[annotatorEmail]
-  );
+  if (!isGatekeeper) {
+    document.getElementById("gatekeeper").checked = isGatekeeper;
+    localStorage.setItem(
+      "annotatorName",
+      annotatorEmailToNameMapping[annotatorEmail]
+    );
 
-  document.getElementById("annotatorName").value =
-    annotatorEmailToNameMapping[annotatorEmail];
+    document.getElementById("annotatorName").value =
+      annotatorEmailToNameMapping[annotatorEmail];
+  }
 
-  if (document.getElementById("rejectAnnotation2").checked) {
-    document.getElementById(`mainContent`).style.display = `block`;
-    document.getElementById(`noContent`).style.display = `none`;
+  if (
+    jsonData.promptObj.question.answer !== "" ||
+    jsonData.promptObj.question.answer !== undefined ||
+    jsonData.promptObj.question.answer !== null
+  ) {
+    if (
+      jsonData.promptObj.question.answer == "1" &&
+      data.fileCheck.isRejected
+    ) {
+      const email = data.fileCheck.rejections[0].annotatorEmail;
+      const reason = data.fileCheck.rejections[0].rejectionReason;
+      const d = new Date(data.fileCheck.rejections[0].timestamp);
+      document.getElementById("rejectAnnotation1").checked = true;
+      document.getElementById("rejectAnnotation2").checked = false;
+      document.getElementById(`mainContent`).style.display = `none`;
+      document.getElementById(`noContent`).style.display = `block`;
+      document.getElementById(`noContent-rejectReason`).style.display = `none`;
+      document.getElementById(`noContent-rejectInfo`).style.display = `block`;
+      document.getElementById(
+        "noContent-rejectInfo"
+      ).innerHTML = `This file was rejected by <b>${email}</b> on <b>${d.toLocaleDateString()}</b>, for the reason - "${reason}"`;
+    } else if (jsonData.promptObj.question.answer === "2") {
+      document.getElementById("rejectAnnotation2").checked = true;
+    }
   }
 
   let tempLang = localStorage.getItem("languageChoice")?.toLowerCase();
@@ -391,8 +428,8 @@ function fillContent(data, fileName) {
 
   function updateTimeLog(id) {
     const millis = Date.now() - timeLog.startTime;
-    // mins elapsed
-    timeLog.completionEndTimes[id] = Math.floor(millis / 60000);
+    // seconds elapsed
+    timeLog.completionEndTimes[id] = Math.floor(millis / 1000);
   }
 
   // fill final questions
@@ -635,9 +672,8 @@ function setFinalQuestions(occurrenceNumber) {
   jsonData.notesObj[
     "Confidence of Ranking [1-10].1 means not confident at all, 10 means very confident."
   ] = document.getElementById("confidence").value;
-  jsonData.notesObj["Reason for ranking. (Free text)"] = document
-    .getElementById("reason")
-    .value.replace(/[^\x00-\x7F]/g, "");
+  jsonData.notesObj["Reason for ranking. (Free text)"] =
+    document.getElementById("reason").value;
   jsonData.notesObj["Time taken to complete the task (in mins)"] =
     document.getElementById("timeTaken").value;
 
@@ -1240,4 +1276,46 @@ function removeDoubleQuotes(inputElement) {
 
   // Update the value of the text box with the sanitized input
   inputElement.value = sanitizedValue;
+}
+
+function rejectFile() {
+  if (document.getElementById("rejectAnnotation1").checked) {
+    jsonData.promptObj.question.answer = "1";
+  } else if (document.getElementById("rejectAnnotation2").checked) {
+    jsonData.promptObj.question.answer = "2";
+  }
+  setData();
+  if (document.getElementById("rejectionReason").value != "") {
+    let someData = {
+      timestamp: new Date(),
+      podNumber,
+      fileName: document.getElementById("fileName").innerText,
+      rejectionReason: document.getElementById("rejectionReason").value,
+      annotatorEmail,
+      language: languageChoice,
+      task: taskChoice,
+    };
+    ipcRenderer.send("writeRejectionLogs", [someData]);
+    showSuccessAlert("Reason for rejection submitted successfully");
+
+    document.getElementById(`noContent-rejectReason`).style.display = `none`;
+    document.getElementById(`noContent-rejectInfo`).style.display = `block`;
+    document.getElementById(
+      "noContent-rejectInfo"
+    ).innerHTML = `This file was rejected by <b>${annotatorEmail}</b>, for the reason - "${
+      document.getElementById("rejectionReason").value
+    }"`;
+  } else {
+    showFailAlert("Reason for rejection cannot be empty");
+  }
+}
+
+function activateGatekeeper() {
+  if (document.getElementById("gatekeeper").checked) {
+    isGatekeeper = true;
+    localStorage.setItem("isGatekeeper", true);
+  } else {
+    isGatekeeper = false;
+    localStorage.setItem("isGatekeeper", false);
+  }
 }
