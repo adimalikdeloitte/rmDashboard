@@ -1,6 +1,6 @@
 {
   "name": "rmdashboard",
-  "version": "3.0.0",
+  "version": "3.0.2",
   "description": "Dashboard for RM task in AWS RLHF",
   "main": "main.js",
   "scripts": {

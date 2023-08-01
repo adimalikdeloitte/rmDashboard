@@ -13,6 +13,9 @@ let taskChoice = "RM";
 let isGatekeeper =
   localStorage.getItem("isGatekeeper") === "true" ? true : false;
 
+document.getElementById("gatekeeper").checked = isGatekeeper;
+let optionsInCompletions = 19;
+
 let arrForRankingStr = [];
 
 const annotatorEmailToNameMapping = {
@@ -289,6 +292,11 @@ ipcRenderer.on("file-data", (event, data) => {
     } else if (jsonData.promptObj.question.answer === "2") {
       document.getElementById("rejectAnnotation2").checked = true;
     }
+
+    const questionSet = document.getElementsByName(`infoQuestionSet4`);
+    questionSet.length === 3
+      ? (optionsInCompletions = 19)
+      : (optionsInCompletions = 13);
   }
 
   let tempLang = localStorage.getItem("languageChoice")?.toLowerCase();
@@ -433,7 +441,7 @@ function fillContent(data, fileName) {
   }
 
   // fill final questions
-  document.getElementById("ranking").innerText =
+  document.getElementById("ranking").value =
     data?.notesObj["Ranking between completions. Eg: A > BD > C > E"];
 
   document.getElementById("confidence").value = Number(
@@ -588,56 +596,141 @@ function setPromptData(occurrenceNumber) {
 
 function setCompletion(totalCompletions) {
   for (let i = 1; i <= totalCompletions; i++) {
-    if (document.getElementById(`infoRadio${(i - 1) * 13 + 1}`).checked) {
+    if (
+      document.getElementById(`infoRadio${(i - 1) * optionsInCompletions + 1}`)
+        .checked
+    ) {
       jsonData.completionsArr[i - 1].question.questions[0].answer = "1";
     } else if (
-      document.getElementById(`infoRadio${(i - 1) * 13 + 2}`).checked
+      document.getElementById(`infoRadio${(i - 1) * optionsInCompletions + 2}`)
+        .checked
     ) {
       jsonData.completionsArr[i - 1].question.questions[0].answer = "2";
     }
 
-    if (document.getElementById(`infoRadio${(i - 1) * 13 + 3}`).checked) {
+    if (
+      document.getElementById(`infoRadio${(i - 1) * optionsInCompletions + 3}`)
+        .checked
+    ) {
       jsonData.completionsArr[i - 1].question.questions[1].answer = "1";
     } else if (
-      document.getElementById(`infoRadio${(i - 1) * 13 + 4}`).checked
+      document.getElementById(`infoRadio${(i - 1) * optionsInCompletions + 4}`)
+        .checked
     ) {
       jsonData.completionsArr[i - 1].question.questions[1].answer = "2";
     } else if (
-      document.getElementById(`infoRadio${(i - 1) * 13 + 5}`).checked
+      document.getElementById(`infoRadio${(i - 1) * optionsInCompletions + 5}`)
+        .checked
     ) {
       jsonData.completionsArr[i - 1].question.questions[1].answer = "3";
     }
 
-    if (document.getElementById(`infoRadio${(i - 1) * 13 + 6}`).checked) {
+    if (
+      document.getElementById(`infoRadio${(i - 1) * optionsInCompletions + 6}`)
+        .checked
+    ) {
       jsonData.completionsArr[i - 1].question.questions[2].answer = "1";
     } else if (
-      document.getElementById(`infoRadio${(i - 1) * 13 + 7}`).checked
+      document.getElementById(`infoRadio${(i - 1) * optionsInCompletions + 7}`)
+        .checked
     ) {
       jsonData.completionsArr[i - 1].question.questions[2].answer = "2";
     } else if (
-      document.getElementById(`infoRadio${(i - 1) * 13 + 8}`).checked
+      document.getElementById(`infoRadio${(i - 1) * optionsInCompletions + 8}`)
+        .checked
     ) {
       jsonData.completionsArr[i - 1].question.questions[2].answer = "3";
     } else if (
-      document.getElementById(`infoRadio${(i - 1) * 13 + 9}`).checked
+      document.getElementById(`infoRadio${(i - 1) * optionsInCompletions + 9}`)
+        .checked
     ) {
       jsonData.completionsArr[i - 1].question.questions[2].answer = "4";
     } else if (
-      document.getElementById(`infoRadio${(i - 1) * 13 + 10}`).checked
+      document.getElementById(`infoRadio${(i - 1) * optionsInCompletions + 10}`)
+        .checked
     ) {
       jsonData.completionsArr[i - 1].question.questions[2].answer = "5";
     }
 
-    if (document.getElementById(`infoRadio${(i - 1) * 13 + 11}`).checked) {
-      jsonData.completionsArr[i - 1].question.questions[3].answer = "1";
-    } else if (
-      document.getElementById(`infoRadio${(i - 1) * 13 + 12}`).checked
-    ) {
-      jsonData.completionsArr[i - 1].question.questions[3].answer = "2";
-    }
+    if (optionsInCompletions === 19) {
+      if (
+        document.getElementById(
+          `infoRadio${(i - 1) * optionsInCompletions + 11}`
+        ).checked
+      ) {
+        jsonData.completionsArr[i - 1].question.questions[3].answer = "1";
+      } else if (
+        document.getElementById(
+          `infoRadio${(i - 1) * optionsInCompletions + 12}`
+        ).checked
+      ) {
+        jsonData.completionsArr[i - 1].question.questions[3].answer = "2";
+      } else if (
+        document.getElementById(
+          `infoRadio${(i - 1) * optionsInCompletions + 13}`
+        ).checked
+      ) {
+        jsonData.completionsArr[i - 1].question.questions[3].answer = "3";
+      }
 
-    jsonData.completionsArr[i - 1].question.questions[4].answer =
-      document.getElementById(`infoRadio${(i - 1) * 13 + 13}`).value;
+      if (
+        document.getElementById(
+          `infoRadio${(i - 1) * optionsInCompletions + 14}`
+        ).checked
+      ) {
+        jsonData.completionsArr[i - 1].question.questions[4].answer = "1";
+      } else if (
+        document.getElementById(
+          `infoRadio${(i - 1) * optionsInCompletions + 15}`
+        ).checked
+      ) {
+        jsonData.completionsArr[i - 1].question.questions[4].answer = "2";
+      } else if (
+        document.getElementById(
+          `infoRadio${(i - 1) * optionsInCompletions + 16}`
+        ).checked
+      ) {
+        jsonData.completionsArr[i - 1].question.questions[4].answer = "3";
+      }
+
+      if (
+        document.getElementById(
+          `infoRadio${(i - 1) * optionsInCompletions + 17}`
+        ).checked
+      ) {
+        jsonData.completionsArr[i - 1].question.questions[5].answer = "1";
+      } else if (
+        document.getElementById(
+          `infoRadio${(i - 1) * optionsInCompletions + 18}`
+        ).checked
+      ) {
+        jsonData.completionsArr[i - 1].question.questions[5].answer = "2";
+      }
+
+      jsonData.completionsArr[i - 1].question.questions[6].answer =
+        document.getElementById(
+          `infoRadio${(i - 1) * optionsInCompletions + optionsInCompletions}`
+        ).value;
+    } else {
+      if (
+        document.getElementById(
+          `infoRadio${(i - 1) * optionsInCompletions + 11}`
+        ).checked
+      ) {
+        jsonData.completionsArr[i - 1].question.questions[3].answer = "1";
+      } else if (
+        document.getElementById(
+          `infoRadio${(i - 1) * optionsInCompletions + 12}`
+        ).checked
+      ) {
+        jsonData.completionsArr[i - 1].question.questions[3].answer = "2";
+      }
+
+      jsonData.completionsArr[i - 1].question.questions[4].answer =
+        document.getElementById(
+          `infoRadio${(i - 1) * optionsInCompletions + optionsInCompletions}`
+        ).value;
+    }
 
     const startIndex =
       findOccurrence(originalData, startDelimiter, i + 1) +
@@ -660,15 +753,19 @@ function setFinalQuestions(occurrenceNumber) {
   for (let j = 1; j <= occurrenceNumber - 2; j++) {
     arrForRankingStr.push([
       `${String.fromCharCode(j + 64)}`,
-      Number(document.getElementById(`infoRadio${j * 13}`).value),
+      Number(
+        document.getElementById(`infoRadio${j * optionsInCompletions}`).value
+      ),
     ]);
   }
 
-  document.getElementById("ranking").innerText =
-    produceRankString(arrForRankingStr);
+  // document.getElementById("ranking").innerText =
+  //   produceRankString(arrForRankingStr);
 
+  // jsonData.notesObj["Ranking between completions. Eg: A > BD > C > E"] =
+  //   produceRankString(arrForRankingStr);
   jsonData.notesObj["Ranking between completions. Eg: A > BD > C > E"] =
-    produceRankString(arrForRankingStr);
+    document.getElementById("ranking").value;
   jsonData.notesObj[
     "Confidence of Ranking [1-10].1 means not confident at all, 10 means very confident."
   ] = document.getElementById("confidence").value;
@@ -699,7 +796,6 @@ function checkEmptyValues() {
   for (let x = 1; x <= jsonData.completionsArr?.length * 5; x++) {
     if (x % 5 !== 0) {
       const questionSet = document.getElementsByName(`infoQuestionSet${x}`);
-
       let flagForSet = false;
       for (let i = 0; i < questionSet.length; i++) {
         if (questionSet[i].checked) {
@@ -713,7 +809,10 @@ function checkEmptyValues() {
 
   //check if ratings are filled or not
   for (let x = 1; x <= jsonData.completionsArr?.length; x++) {
-    if (document.getElementById(`infoRadio${x * 13}`).value === "") {
+    if (
+      document.getElementById(`infoRadio${x * optionsInCompletions}`).value ===
+      ""
+    ) {
       flag = false;
     }
   }
@@ -739,7 +838,7 @@ function checkEmptyValues() {
     flag = false;
   }
 
-  return flag;
+  return true;
 }
 
 function setData() {
@@ -879,7 +978,7 @@ function checkRating(completions) {
     // }
 
     if (ques[0].answer != "1") {
-      if (ques[4].answer > 1) {
+      if (ques[optionsInCompletions === 13 ? 4 : 6].answer > 1) {
         errorList.push(
           "Completion " +
             String.fromCharCode(index + 65) +
@@ -892,8 +991,8 @@ function checkRating(completions) {
 
         //   if (ques[1].answer != "1") {
 
-        if (ques[3].answer != "1") {
-          if (ques[4].answer > 1) {
+        if (ques[optionsInCompletions === 13 ? 3 : 5].answer != "1") {
+          if (ques[optionsInCompletions === 13 ? 4 : 6].answer > 1) {
             errorList.push(
               "Completion " +
                 String.fromCharCode(index + 65) +
@@ -901,7 +1000,7 @@ function checkRating(completions) {
             );
           }
         } else {
-          if (ques[4].answer > 4) {
+          if (ques[optionsInCompletions === 13 ? 4 : 6].answer > 4) {
             errorList.push(
               "Completion " +
                 String.fromCharCode(index + 65) +
@@ -910,8 +1009,8 @@ function checkRating(completions) {
           }
         }
       } else {
-        if (ques[3].answer != "1") {
-          if (ques[4].answer > 4) {
+        if (ques[optionsInCompletions === 13 ? 3 : 5].answer != "1") {
+          if (ques[optionsInCompletions === 13 ? 4 : 6].answer > 4) {
             errorList.push(
               "Completion " +
                 String.fromCharCode(index + 65) +
@@ -919,7 +1018,7 @@ function checkRating(completions) {
             );
           }
         } else {
-          if (ques[4].answer <= 4) {
+          if (ques[optionsInCompletions === 13 ? 4 : 6].answer <= 4) {
             errorList.push(
               "Completion " +
                 String.fromCharCode(index + 65) +
@@ -934,6 +1033,16 @@ function checkRating(completions) {
   return { errorList };
 }
 
+function hasNonAsciiCharacters(text) {
+  for (let i = 0; i < text.length; i++) {
+    const charCode = text.charCodeAt(i);
+    if (charCode > 127) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function runChecks() {
   if (checkEmptyValues() === false) {
     showFailAlert("Cannot run checks: please fill empty values !");
@@ -943,6 +1052,13 @@ function runChecks() {
     // const locMessage = checkLinesOfCode(jsonData.completionsArr).message;
     if (abbreviations.length !== 0) {
       checksArr.push(message + abbreviations);
+    }
+
+    // check for non ascii character in the reason for ranking
+    if (hasNonAsciiCharacters(document.getElementById("reason").value)) {
+      checksArr.push(
+        "Non - Ascii characters present in your reason for ranking text."
+      );
     }
 
     // checksArr = [...checksArr, ...locMessage];
@@ -956,7 +1072,7 @@ function runChecks() {
       document.getElementById("ratingChecks").appendChild(listItem);
     });
 
-    errorPercentage = ((checksArr.length / 10) * 100).toFixed(2);
+    errorPercentage = ((checksArr.length / 7) * 100).toFixed(2);
     document.getElementById(
       "errorPercentage"
     ).innerText = `Error Percentage : ${errorPercentage} %`;
@@ -1031,13 +1147,13 @@ function checkRatingHelper(ques) {
     return { start: 1, end: 1 };
   } else {
     if (ques[1] != "1" && ques[1] != "3") {
-      if (ques[3] != "1") {
+      if (ques[optionsInCompletions === 13 ? 3 : 5] != "1") {
         return { start: 1, end: 1 };
       } else {
         return { start: 1, end: 4 };
       }
     } else {
-      if (ques[3] != "1") {
+      if (ques[optionsInCompletions === 13 ? 3 : 5] != "1") {
         return { start: 1, end: 4 };
       } else {
         return { start: 5, end: 7 };
@@ -1047,228 +1163,228 @@ function checkRatingHelper(ques) {
 }
 
 // remove unwanted options from rating
-document.addEventListener("click", (e) => {
-  if (e.target.id.includes("infoRadio")) {
-    const idNum = Number(e.target.id.substring(9));
-    if (idNum <= 12) {
-      const ques = [];
-      if (document.getElementById("infoRadio1").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio2").checked) {
-        ques.push("2");
-      }
+// document.addEventListener("click", (e) => {
+//   if (e.target.id.includes("infoRadio")) {
+//     const idNum = Number(e.target.id.substring(9));
+//     if (idNum <= 12) {
+//       const ques = [];
+//       if (document.getElementById("infoRadio1").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio2").checked) {
+//         ques.push("2");
+//       }
 
-      if (document.getElementById("infoRadio3").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio4").checked) {
-        ques.push("2");
-      } else if (document.getElementById("infoRadio5").checked) {
-        ques.push("3");
-      }
+//       if (document.getElementById("infoRadio3").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio4").checked) {
+//         ques.push("2");
+//       } else if (document.getElementById("infoRadio5").checked) {
+//         ques.push("3");
+//       }
 
-      // insert blank for options 6-10
-      ques.push("-");
+//       // insert blank for options 6-10
+//       ques.push("-");
 
-      if (document.getElementById("infoRadio11").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio12").checked) {
-        ques.push("2");
-      }
+//       if (document.getElementById("infoRadio11").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio12").checked) {
+//         ques.push("2");
+//       }
 
-      const { start, end } = checkRatingHelper(ques);
+//       const { start, end } = checkRatingHelper(ques);
 
-      const infoRadio = document.getElementById("infoRadio13");
-      infoRadio.innerHTML = "";
-      for (let i = start; i <= end; i++) {
-        const allowedOption = document.createElement("option");
-        allowedOption.innerText = i;
-        allowedOption.value = i;
+//       const infoRadio = document.getElementById("infoRadiooptionsInCompletions");
+//       infoRadio.innerHTML = "";
+//       for (let i = start; i <= end; i++) {
+//         const allowedOption = document.createElement("option");
+//         allowedOption.innerText = i;
+//         allowedOption.value = i;
 
-        infoRadio.appendChild(allowedOption);
-      }
-    } else if (idNum > 13 && idNum <= 25) {
-      const ques = [];
-      if (document.getElementById("infoRadio14").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio15").checked) {
-        ques.push("2");
-      }
+//         infoRadio.appendChild(allowedOption);
+//       }
+//     } else if (idNum > optionsInCompletions && idNum <= 25) {
+//       const ques = [];
+//       if (document.getElementById("infoRadio14").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio15").checked) {
+//         ques.push("2");
+//       }
 
-      if (document.getElementById("infoRadio16").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio17").checked) {
-        ques.push("2");
-      } else if (document.getElementById("infoRadio18").checked) {
-        ques.push("3");
-      }
+//       if (document.getElementById("infoRadio16").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio17").checked) {
+//         ques.push("2");
+//       } else if (document.getElementById("infoRadio18").checked) {
+//         ques.push("3");
+//       }
 
-      // insert blank for options 19-23
-      ques.push("-");
+//       // insert blank for options 19-23
+//       ques.push("-");
 
-      if (document.getElementById("infoRadio24").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio25").checked) {
-        ques.push("2");
-      }
+//       if (document.getElementById("infoRadio24").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio25").checked) {
+//         ques.push("2");
+//       }
 
-      const { start, end } = checkRatingHelper(ques);
+//       const { start, end } = checkRatingHelper(ques);
 
-      const infoRadio = document.getElementById("infoRadio26");
-      infoRadio.innerHTML = "";
-      for (let i = start; i <= end; i++) {
-        const allowedOption = document.createElement("option");
-        allowedOption.innerText = i;
-        allowedOption.value = i;
+//       const infoRadio = document.getElementById("infoRadio26");
+//       infoRadio.innerHTML = "";
+//       for (let i = start; i <= end; i++) {
+//         const allowedOption = document.createElement("option");
+//         allowedOption.innerText = i;
+//         allowedOption.value = i;
 
-        infoRadio.appendChild(allowedOption);
-      }
-    } else if (idNum > 26 && idNum <= 38) {
-      const ques = [];
-      if (document.getElementById("infoRadio27").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio28").checked) {
-        ques.push("2");
-      }
+//         infoRadio.appendChild(allowedOption);
+//       }
+//     } else if (idNum > 26 && idNum <= 38) {
+//       const ques = [];
+//       if (document.getElementById("infoRadio27").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio28").checked) {
+//         ques.push("2");
+//       }
 
-      if (document.getElementById("infoRadio29").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio30").checked) {
-        ques.push("2");
-      } else if (document.getElementById("infoRadio31").checked) {
-        ques.push("3");
-      }
+//       if (document.getElementById("infoRadio29").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio30").checked) {
+//         ques.push("2");
+//       } else if (document.getElementById("infoRadio31").checked) {
+//         ques.push("3");
+//       }
 
-      // insert blank for options 32-36
-      ques.push("-");
+//       // insert blank for options 32-36
+//       ques.push("-");
 
-      if (document.getElementById("infoRadio37").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio38").checked) {
-        ques.push("2");
-      }
+//       if (document.getElementById("infoRadio37").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio38").checked) {
+//         ques.push("2");
+//       }
 
-      const { start, end } = checkRatingHelper(ques);
+//       const { start, end } = checkRatingHelper(ques);
 
-      const infoRadio = document.getElementById("infoRadio39");
-      infoRadio.innerHTML = "";
-      for (let i = start; i <= end; i++) {
-        const allowedOption = document.createElement("option");
-        allowedOption.innerText = i;
-        allowedOption.value = i;
+//       const infoRadio = document.getElementById("infoRadio39");
+//       infoRadio.innerHTML = "";
+//       for (let i = start; i <= end; i++) {
+//         const allowedOption = document.createElement("option");
+//         allowedOption.innerText = i;
+//         allowedOption.value = i;
 
-        infoRadio.appendChild(allowedOption);
-      }
-    } else if (idNum > 39 && idNum <= 51) {
-      const ques = [];
-      if (document.getElementById("infoRadio40").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio41").checked) {
-        ques.push("2");
-      }
+//         infoRadio.appendChild(allowedOption);
+//       }
+//     } else if (idNum > 39 && idNum <= 51) {
+//       const ques = [];
+//       if (document.getElementById("infoRadio40").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio41").checked) {
+//         ques.push("2");
+//       }
 
-      if (document.getElementById("infoRadio42").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio43").checked) {
-        ques.push("2");
-      } else if (document.getElementById("infoRadio44").checked) {
-        ques.push("3");
-      }
+//       if (document.getElementById("infoRadio42").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio43").checked) {
+//         ques.push("2");
+//       } else if (document.getElementById("infoRadio44").checked) {
+//         ques.push("3");
+//       }
 
-      // insert blank for options 45-49
-      ques.push("-");
+//       // insert blank for options 45-49
+//       ques.push("-");
 
-      if (document.getElementById("infoRadio50").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio51").checked) {
-        ques.push("2");
-      }
+//       if (document.getElementById("infoRadio50").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio51").checked) {
+//         ques.push("2");
+//       }
 
-      const { start, end } = checkRatingHelper(ques);
+//       const { start, end } = checkRatingHelper(ques);
 
-      const infoRadio = document.getElementById("infoRadio52");
-      infoRadio.innerHTML = "";
-      for (let i = start; i <= end; i++) {
-        const allowedOption = document.createElement("option");
-        allowedOption.innerText = i;
-        allowedOption.value = i;
+//       const infoRadio = document.getElementById("infoRadio52");
+//       infoRadio.innerHTML = "";
+//       for (let i = start; i <= end; i++) {
+//         const allowedOption = document.createElement("option");
+//         allowedOption.innerText = i;
+//         allowedOption.value = i;
 
-        infoRadio.appendChild(allowedOption);
-      }
-    } else if (idNum > 52 && idNum <= 64) {
-      const ques = [];
-      if (document.getElementById("infoRadio53").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio54").checked) {
-        ques.push("2");
-      }
+//         infoRadio.appendChild(allowedOption);
+//       }
+//     } else if (idNum > 52 && idNum <= 64) {
+//       const ques = [];
+//       if (document.getElementById("infoRadio53").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio54").checked) {
+//         ques.push("2");
+//       }
 
-      if (document.getElementById("infoRadio55").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio56").checked) {
-        ques.push("2");
-      } else if (document.getElementById("infoRadio57").checked) {
-        ques.push("3");
-      }
+//       if (document.getElementById("infoRadio55").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio56").checked) {
+//         ques.push("2");
+//       } else if (document.getElementById("infoRadio57").checked) {
+//         ques.push("3");
+//       }
 
-      // insert blank for options 58-62
-      ques.push("-");
+//       // insert blank for options 58-62
+//       ques.push("-");
 
-      if (document.getElementById("infoRadio63").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio64").checked) {
-        ques.push("2");
-      }
+//       if (document.getElementById("infoRadio63").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio64").checked) {
+//         ques.push("2");
+//       }
 
-      const { start, end } = checkRatingHelper(ques);
+//       const { start, end } = checkRatingHelper(ques);
 
-      const infoRadio = document.getElementById("infoRadio65");
-      infoRadio.innerHTML = "";
-      for (let i = start; i <= end; i++) {
-        const allowedOption = document.createElement("option");
-        allowedOption.innerText = i;
-        allowedOption.value = i;
+//       const infoRadio = document.getElementById("infoRadio65");
+//       infoRadio.innerHTML = "";
+//       for (let i = start; i <= end; i++) {
+//         const allowedOption = document.createElement("option");
+//         allowedOption.innerText = i;
+//         allowedOption.value = i;
 
-        infoRadio.appendChild(allowedOption);
-      }
-    } else if (idNum > 65 && idNum <= 77) {
-      const ques = [];
-      if (document.getElementById("infoRadio66").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio67").checked) {
-        ques.push("2");
-      }
+//         infoRadio.appendChild(allowedOption);
+//       }
+//     } else if (idNum > 65 && idNum <= 77) {
+//       const ques = [];
+//       if (document.getElementById("infoRadio66").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio67").checked) {
+//         ques.push("2");
+//       }
 
-      if (document.getElementById("infoRadio68").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio69").checked) {
-        ques.push("2");
-      } else if (document.getElementById("infoRadio70").checked) {
-        ques.push("3");
-      }
+//       if (document.getElementById("infoRadio68").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio69").checked) {
+//         ques.push("2");
+//       } else if (document.getElementById("infoRadio70").checked) {
+//         ques.push("3");
+//       }
 
-      // insert blank for options 71-75
-      ques.push("-");
+//       // insert blank for options 71-75
+//       ques.push("-");
 
-      if (document.getElementById("infoRadio76").checked) {
-        ques.push("1");
-      } else if (document.getElementById("infoRadio77").checked) {
-        ques.push("2");
-      }
+//       if (document.getElementById("infoRadio76").checked) {
+//         ques.push("1");
+//       } else if (document.getElementById("infoRadio77").checked) {
+//         ques.push("2");
+//       }
 
-      const { start, end } = checkRatingHelper(ques);
+//       const { start, end } = checkRatingHelper(ques);
 
-      const infoRadio = document.getElementById("infoRadio78");
-      infoRadio.innerHTML = "";
-      for (let i = start; i <= end; i++) {
-        const allowedOption = document.createElement("option");
-        allowedOption.innerText = i;
-        allowedOption.value = i;
+//       const infoRadio = document.getElementById("infoRadio78");
+//       infoRadio.innerHTML = "";
+//       for (let i = start; i <= end; i++) {
+//         const allowedOption = document.createElement("option");
+//         allowedOption.innerText = i;
+//         allowedOption.value = i;
 
-        infoRadio.appendChild(allowedOption);
-      }
-    }
-  }
-});
+//         infoRadio.appendChild(allowedOption);
+//       }
+//     }
+//   }
+// });
 
 function removeDoubleQuotes(inputElement) {
   const inputValue = inputElement.value;
