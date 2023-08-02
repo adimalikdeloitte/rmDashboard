@@ -10,10 +10,6 @@ let timeLog = {
   completionEndTimes: {},
 };
 let taskChoice = "RM";
-let isGatekeeper =
-  localStorage.getItem("isGatekeeper") === "true" ? true : false;
-
-document.getElementById("gatekeeper").checked = isGatekeeper;
 let optionsInCompletions = 19;
 
 let arrForRankingStr = [];
@@ -175,7 +171,7 @@ const annotatorEmailToNameMapping = {
   "arybanerjee@deloitte.com": "Aryamaan Banerjee",
   "saummittal@deloitte.com": "Saumay Mittal",
   "zaiqureshi@deloitte.com": "Zaid Abdullah Qureshi",
-  "simran@deloitte.com": "Imran Shaikh",
+  "simran@deloitte.com": "Imran Shaik",
   "manipatil@deloitte.com": "Manish Patil",
   "jinjoseph@deloitte.com": "Jinson Joseph",
   "gnunia@deloitte.com": "Gourav Nunia",
@@ -257,8 +253,7 @@ ipcRenderer.on("file-data", (event, data) => {
   localStorage.setItem("annotatorEmail", annotatorEmail);
   localStorage.setItem("podNumber", podNumber);
 
-  if (!isGatekeeper) {
-    document.getElementById("gatekeeper").checked = isGatekeeper;
+  if (document.getElementById("annotatorName").value === "") {
     localStorage.setItem(
       "annotatorName",
       annotatorEmailToNameMapping[annotatorEmail]
@@ -849,7 +844,6 @@ function setData() {
   if (checkEmptyValues() === false) {
     showFailAlert("Cannot update data : Please fill all fields !");
   } else {
-    localStorage.setItem("annotatorName", jsonData?.notesObj["Annotator Name"]);
     setTimeout(() => {
       ipcRenderer.send("set-section", {
         newData: originalData,
@@ -922,9 +916,10 @@ function checkAbbreviations(notesObj) {
 }
 
 function checkLinesOfCode(completions) {
-  const max = 20;
+  const max = 100;
 
   var loc = [];
+  var loComm = [];
 
   var pattern = /\`\`\`[\w\s]*\n([\s\S]*?)\`\`\`/gm;
 
@@ -932,18 +927,131 @@ function checkLinesOfCode(completions) {
     let codeBlocks = comp.answer.match(pattern);
 
     let lines = [];
+    let commentLines = [];
+
+    const commRegexObj = {
+      Java: {
+        multi: /\/\*([\s\S]*?)\*\//g,
+        single: /(?<!:|\/)\/\//g,
+      },
+      Python: {
+        multi: /('''|""")([\s\S]*?)\1/g,
+        single: /#/,
+      },
+      JavaScript: {
+        multi: /\/\*([\s\S]*?)\*\//g,
+        single: /(?<!:|\/)\/\//g,
+      },
+    };
 
     codeBlocks?.map((cB, idx) => {
+      const commCheck = (string, pattern) => {
+        let result = string.match(pattern);
+        return result === null ? [] : result;
+      };
+      let multiLineComm = commCheck(cB, commRegexObj[languageChoice].multi);
+      let singleLineComm = commCheck(cB, commRegexObj[languageChoice].single);
+      let multiLineCommHTML = commCheck(cB, /<!--([\s\S]*?)-->/g);
+      let totalCommLines = 0;
+      multiLineComm.map((comm) => {
+        totalCommLines += comm.split("\n").length;
+      });
+      multiLineCommHTML.map((comm) => {
+        totalCommLines += comm.split("\n").length;
+      });
+      totalCommLines += singleLineComm.length;
       lines.push(cB.split("\n").length - 2);
+      commentLines.push(totalCommLines);
     });
 
     loc.push(lines);
+    loComm.push(commentLines);
   });
 
   var message = [];
+  var commMessage = [];
 
   loc.map((codes, i) => {
     codes.map((cLines, j) => {
+      if (cLines > 3) {
+        let perc = (loComm[i][j] / cLines) * 100;
+        let commMessStr =
+          "Code snippet " +
+          (j + 1) +
+          " (" +
+          cLines +
+          " lines) of completion " +
+          String.fromCharCode(i + 65);
+        if (perc > 40 && completions[i].question.questions[2].answer !== "3") {
+          commMessage.push(
+            commMessStr +
+              " is heavily commented (" +
+              Math.round(perc * 100) / 100 +
+              " %), but you have marked the wrong option"
+          );
+        } else if (
+          perc >= 20 &&
+          perc <= 40 &&
+          completions[i].question.questions[2].answer !== "4"
+        ) {
+          commMessage.push(
+            commMessStr +
+              " is well commented (" +
+              Math.round(perc * 100) / 100 +
+              " %), but you have marked the wrong option"
+          );
+        } else if (
+          perc > 1 &&
+          perc < 20 &&
+          completions[i].question.questions[2].answer !== "2"
+        ) {
+          commMessage.push(
+            commMessStr +
+              " is not enough commented (" +
+              Math.round(perc * 100) / 100 +
+              " %), but you have marked the wrong option"
+          );
+        } else if (
+          perc < 1 &&
+          completions[i].question.questions[2].answer !== "1"
+        ) {
+          commMessage.push(
+            commMessStr +
+              " is not at all commented (" +
+              Math.round(perc * 100) / 100 +
+              " %), but you have marked the wrong option"
+          );
+        }
+      } else {
+        if (
+          loComm[i][j] >= 1 &&
+          completions[i].question.questions[2].answer !== "4"
+        ) {
+          commMessage.push(
+            "Code snippet " +
+              (j + 1) +
+              " (" +
+              cLines +
+              " lines) of completion " +
+              String.fromCharCode(i + 65) +
+              " has more than 1 lines of comment and should be marked well commented."
+          );
+        } else if (
+          loComm[i][j] < 1 &&
+          completions[i].question.questions[2].answer !== "5"
+        ) {
+          commMessage.push(
+            "Code snippet " +
+              (j + 1) +
+              " (" +
+              cLines +
+              " lines) of completion " +
+              String.fromCharCode(i + 65) +
+              " has 0 lines of comment and should be marked NA"
+          );
+        }
+      }
+
       if (cLines > max && completions[i].question.questions[1].answer === "1") {
         message.push(
           "Code snippet " +
@@ -958,7 +1066,7 @@ function checkLinesOfCode(completions) {
     });
   });
 
-  return { loc, message };
+  return { loc, message, loComm, commMessage };
 }
 
 function checkRating(completions) {
@@ -1050,6 +1158,8 @@ function runChecks() {
     let checksArr = checkRating(jsonData.completionsArr).errorList;
     const { message, abbreviations } = checkAbbreviations(jsonData.notesObj);
     // const locMessage = checkLinesOfCode(jsonData.completionsArr).message;
+    const { commMessage } = checkLinesOfCode(jsonData.completionsArr);
+    checksArr = [...checksArr, ...commMessage];
     if (abbreviations.length !== 0) {
       checksArr.push(message + abbreviations);
     }
@@ -1072,7 +1182,7 @@ function runChecks() {
       document.getElementById("ratingChecks").appendChild(listItem);
     });
 
-    errorPercentage = ((checksArr.length / 7) * 100).toFixed(2);
+    errorPercentage = ((checksArr.length / 12) * 100).toFixed(2);
     document.getElementById(
       "errorPercentage"
     ).innerText = `Error Percentage : ${errorPercentage} %`;
@@ -1423,15 +1533,5 @@ function rejectFile() {
     }"`;
   } else {
     showFailAlert("Reason for rejection cannot be empty");
-  }
-}
-
-function activateGatekeeper() {
-  if (document.getElementById("gatekeeper").checked) {
-    isGatekeeper = true;
-    localStorage.setItem("isGatekeeper", true);
-  } else {
-    isGatekeeper = false;
-    localStorage.setItem("isGatekeeper", false);
   }
 }
