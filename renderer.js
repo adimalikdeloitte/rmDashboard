@@ -318,61 +318,40 @@ function fillContent(data, fileName) {
   for (let j = 0; j < data?.completionsArr?.length; j++) {
     const element = data?.completionsArr[j];
 
-    const completionsContainer = document.getElementById("completions");
-
-    // create collapse toggle button
-    const completionButton = document.createElement("button");
-    completionButton.setAttribute(
-      "class",
-      "btn btn-outline-secondary w-100 mb-3"
-    );
-    completionButton.setAttribute("data-bs-toggle", "collapse");
-    completionButton.setAttribute(
-      "data-bs-target",
-      `#completion${String.fromCharCode(j + 65)}`
-    );
-    completionButton.setAttribute("aria-expanded", "false");
-    completionButton.setAttribute(
-      "aria-controls",
-      `completion${String.fromCharCode(j + 65)}`
+    const completionsTab = document.getElementById("completionsTab");
+    const completionsTabContent = document.getElementById(
+      "completionsTabContent"
     );
 
-    completionButton.innerText = `Completion ${String.fromCharCode(j + 65)}`;
+    // create a unique ID for each tab and tab content
+    const tabId = `tab${String.fromCharCode(j + 65)}`;
+    const tabContentId = `tabContent${String.fromCharCode(j + 65)}`;
 
-    // add button to the container
-    completionsContainer.appendChild(completionButton);
+    // create tab header (nav-link)
+    const tabHeader = document.createElement("li");
+    tabHeader.setAttribute("class", "nav-item");
+    tabHeader.innerHTML = `
+      <a class="nav-link" id="${tabId}-tab" data-bs-toggle="tab" href="#${tabContentId}" role="tab" aria-controls="${tabContentId}" aria-selected="false">
+        Completion ${String.fromCharCode(j + 65)}
+      </a>
+    `;
 
-    // create a completion container
-    const completionContainer = document.createElement("div");
-    completionContainer.setAttribute(
-      "id",
-      `completion${String.fromCharCode(j + 65)}`
-    );
-    completionContainer.setAttribute("class", "collapse");
+    // create tab content
+    const tabContent = document.createElement("div");
+    tabContent.setAttribute("class", "tab-pane fade");
+    tabContent.setAttribute("id", tabContentId);
+    tabContent.setAttribute("role", "tabpanel");
+    tabContent.innerHTML = `
+      <br />
+      <textarea readonly rows="10" class="p-3 w-100" style="border-radius: 5px" placeholder="Completion text ...">${element?.answer}</textarea>
+      <!-- Add other content as needed for each tab -->
+    `;
 
-    // create a completion heading , example : Completion A
-    const completionHeading = document.createElement("h6");
-    completionHeading.innerText = `Completion ${String.fromCharCode(j + 65)}`;
-
-    // insert heading in the container
-    completionContainer.appendChild(completionHeading);
-
-    // create a text box
-    const completionText = document.createElement("textarea");
-    completionText.setAttribute("readonly", "true");
-    completionText.setAttribute("rows", "10");
-    completionText.setAttribute("class", "p-3 w-100");
-    completionText.setAttribute("style", "border-radius: 5px");
-    completionText.setAttribute("placeholder", "Completion text ...");
-    completionText.value = element?.answer;
-
-    // insert textbox in container
-    completionContainer.appendChild(completionText);
-
+    // Insert radio button options
     element?.question?.questions?.forEach((v) => {
       const questionPara = document.createElement("p");
       questionPara.innerText = v.question;
-      completionContainer.appendChild(questionPara);
+      tabContent.appendChild(questionPara);
 
       if (v.question.split(" ")[0] !== "Rate") {
         for (let key in v?.options) {
@@ -382,8 +361,8 @@ function fillContent(data, fileName) {
           const optionInput = document.createElement("input");
           optionInput.setAttribute("class", "form-check-input");
           optionInput.setAttribute("type", "radio");
-          optionInput.setAttribute("name", `infoQuestionSet${infoSetCounter}`);
-          optionInput.setAttribute("id", `infoRadio${infoCounter}`);
+          optionInput.setAttribute("name", `infoQuestionSet${infoCounter}`);
+          optionInput.setAttribute("id", `infoRadio${infoCounter}`); // Use infoCounter to assign IDs
 
           optionContainer.appendChild(optionInput);
 
@@ -394,15 +373,15 @@ function fillContent(data, fileName) {
 
           optionContainer.appendChild(optionLabel);
 
-          completionContainer.appendChild(optionContainer);
+          tabContent.appendChild(optionContainer);
 
           if (v.answer && v.answer === key) optionInput.checked = true;
 
-          infoCounter++;
+          infoCounter++; // Increment infoCounter for the next radio button ID
         }
       } else {
         const numericInput = document.createElement("select");
-        numericInput.setAttribute("id", `infoRadio${infoCounter++}`);
+        numericInput.setAttribute("id", `infoRadio${infoCounter++}`); // Use infoCounter to assign IDs
 
         numericInput.addEventListener("change", () => {
           updateTimeLog(String.fromCharCode(j + 65));
@@ -421,12 +400,25 @@ function fillContent(data, fileName) {
         questionPara.appendChild(numericInput);
       }
 
-      infoSetCounter++;
-      completionContainer.appendChild(document.createElement("br"));
+      tabContent.appendChild(document.createElement("br"));
     });
 
-    // append completion container to outer container
-    completionsContainer.appendChild(completionContainer);
+    // insert tab header and content to the corresponding parent elements
+    completionsTab.appendChild(tabHeader);
+    completionsTabContent.appendChild(tabContent);
+  }
+
+  // Initialize the first tab as active
+  const firstTab = document.querySelector("#completionsTab a.nav-link");
+  if (firstTab) {
+    firstTab.classList.add("active");
+  }
+
+  const firstTabContent = document.querySelector(
+    "#completionsTabContent .tab-pane"
+  );
+  if (firstTabContent) {
+    firstTabContent.classList.add("show", "active");
   }
 
   function updateTimeLog(id) {
@@ -754,11 +746,14 @@ function setFinalQuestions(occurrenceNumber) {
     ]);
   }
 
-  // document.getElementById("ranking").innerText =
-  //   produceRankString(arrForRankingStr);
+  document.getElementById("ranking").value === ""
+    ? (document.getElementById("ranking").value =
+        produceRankString(arrForRankingStr))
+    : (document.getElementById("ranking").value =
+        document.getElementById("ranking").value);
 
-  // jsonData.notesObj["Ranking between completions. Eg: A > BD > C > E"] =
-  //   produceRankString(arrForRankingStr);
+  jsonData.notesObj["Ranking between completions. Eg: A > BD > C > E"] =
+    document.getElementById("ranking").value;
   jsonData.notesObj["Ranking between completions. Eg: A > BD > C > E"] =
     document.getElementById("ranking").value;
   jsonData.notesObj[
@@ -919,6 +914,7 @@ function checkLinesOfCode(completions) {
   const max = 100;
 
   var loc = [];
+
   var loComm = [];
 
   var pattern = /\`\`\`[\w\s]*\n([\s\S]*?)\`\`\`/gm;
@@ -927,19 +923,25 @@ function checkLinesOfCode(completions) {
     let codeBlocks = comp.answer.match(pattern);
 
     let lines = [];
+
     let commentLines = [];
 
     const commRegexObj = {
       Java: {
         multi: /\/\*([\s\S]*?)\*\//g,
+
         single: /(?<!:|\/)\/\//g,
       },
+
       Python: {
         multi: /('''|""")([\s\S]*?)\1/g,
-        single: /#/,
+
+        single: /#/g,
       },
+
       JavaScript: {
         multi: /\/\*([\s\S]*?)\*\//g,
+
         single: /(?<!:|\/)\/\//g,
       },
     };
@@ -947,34 +949,59 @@ function checkLinesOfCode(completions) {
     codeBlocks?.map((cB, idx) => {
       const commCheck = (string, pattern) => {
         let result = string.match(pattern);
+
         return result === null ? [] : result;
       };
+
       let multiLineComm = commCheck(cB, commRegexObj[languageChoice].multi);
-      let singleLineComm = commCheck(cB, commRegexObj[languageChoice].single);
+
+      let singleLineComm = commCheck(
+        cB,
+
+        commRegexObj[languageChoice].single
+      );
+
       let multiLineCommHTML = commCheck(cB, /<!--([\s\S]*?)-->/g);
+
+      let emptyLines = commCheck(cB, /^ *\n/gm);
+
+      let outputLines = commCheck(cB, />>>/g);
+
+      // console.log({ emptyLines, outputLines });
+
       let totalCommLines = 0;
+
       multiLineComm.map((comm) => {
         totalCommLines += comm.split("\n").length;
       });
+
       multiLineCommHTML.map((comm) => {
         totalCommLines += comm.split("\n").length;
       });
+
       totalCommLines += singleLineComm.length;
-      lines.push(cB.split("\n").length - 2);
+
+      lines.push(
+        cB.split("\n").length - 2 - emptyLines.length - outputLines.length
+      );
+
       commentLines.push(totalCommLines);
     });
 
     loc.push(lines);
+
     loComm.push(commentLines);
   });
 
   var message = [];
+
   var commMessage = [];
 
   loc.map((codes, i) => {
     codes.map((cLines, j) => {
       if (cLines > 3) {
         let perc = (loComm[i][j] / cLines) * 100;
+
         let commMessStr =
           "Code snippet " +
           (j + 1) +
@@ -982,6 +1009,7 @@ function checkLinesOfCode(completions) {
           cLines +
           " lines) of completion " +
           String.fromCharCode(i + 65);
+
         if (perc > 40 && completions[i].question.questions[2].answer !== "3") {
           commMessage.push(
             commMessStr +
@@ -1159,7 +1187,6 @@ function runChecks() {
     const { message, abbreviations } = checkAbbreviations(jsonData.notesObj);
     // const locMessage = checkLinesOfCode(jsonData.completionsArr).message;
     const { commMessage } = checkLinesOfCode(jsonData.completionsArr);
-    checksArr = [...checksArr, ...commMessage];
     if (abbreviations.length !== 0) {
       checksArr.push(message + abbreviations);
     }
@@ -1182,7 +1209,22 @@ function runChecks() {
       document.getElementById("ratingChecks").appendChild(listItem);
     });
 
-    errorPercentage = ((checksArr.length / 12) * 100).toFixed(2);
+    if (commMessage?.length !== 0) {
+      const warningHeading = document.createElement("h4");
+      warningHeading.style.color = "orange";
+      warningHeading.innerText = "Warnings !";
+
+      document.getElementById("ratingChecks").appendChild(warningHeading);
+    }
+    commMessage.forEach((check) => {
+      const listItem = document.createElement("li");
+      listItem.style.color = "orange";
+      listItem.innerText = check;
+
+      document.getElementById("ratingChecks").appendChild(listItem);
+    });
+
+    errorPercentage = ((checksArr.length / 7) * 100).toFixed(2);
     document.getElementById(
       "errorPercentage"
     ).innerText = `Error Percentage : ${errorPercentage} %`;
@@ -1510,8 +1552,8 @@ function rejectFile() {
   } else if (document.getElementById("rejectAnnotation2").checked) {
     jsonData.promptObj.question.answer = "2";
   }
-  setData();
   if (document.getElementById("rejectionReason").value != "") {
+    setData();
     let someData = {
       timestamp: new Date(),
       podNumber,
@@ -1522,7 +1564,6 @@ function rejectFile() {
       task: taskChoice,
     };
     ipcRenderer.send("writeRejectionLogs", [someData]);
-    showSuccessAlert("Reason for rejection submitted successfully");
 
     document.getElementById(`noContent-rejectReason`).style.display = `none`;
     document.getElementById(`noContent-rejectInfo`).style.display = `block`;
