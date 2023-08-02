@@ -746,11 +746,11 @@ function setFinalQuestions(occurrenceNumber) {
     ]);
   }
 
-  document.getElementById("ranking").value === ""
-    ? (document.getElementById("ranking").value =
-        produceRankString(arrForRankingStr))
-    : (document.getElementById("ranking").value =
-        document.getElementById("ranking").value);
+  // document.getElementById("ranking").value === ""
+  //   ? (document.getElementById("ranking").value =
+  //       produceRankString(arrForRankingStr))
+  //   : (document.getElementById("ranking").value =
+  //       document.getElementById("ranking").value);
 
   jsonData.notesObj["Ranking between completions. Eg: A > BD > C > E"] =
     document.getElementById("ranking").value;
