@@ -361,7 +361,7 @@ function fillContent(data, fileName) {
           const optionInput = document.createElement("input");
           optionInput.setAttribute("class", "form-check-input");
           optionInput.setAttribute("type", "radio");
-          optionInput.setAttribute("name", `infoQuestionSet${infoCounter}`);
+          optionInput.setAttribute("name", `infoQuestionSet${infoSetCounter}`);
           optionInput.setAttribute("id", `infoRadio${infoCounter}`); // Use infoCounter to assign IDs
 
           optionContainer.appendChild(optionInput);
@@ -400,6 +400,7 @@ function fillContent(data, fileName) {
         questionPara.appendChild(numericInput);
       }
 
+      infoSetCounter++;
       tabContent.appendChild(document.createElement("br"));
     });
 
