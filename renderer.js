@@ -784,8 +784,21 @@ function setFinalQuestions(occurrenceNumber) {
 function checkEmptyValues() {
   // check if all fields are filled
   let flag = true;
-  for (let x = 1; x <= jsonData.completionsArr?.length * 5; x++) {
-    if (x % 5 !== 0) {
+
+  if (
+    document.getElementById("rejectAnnotation1").checked === false &&
+    document.getElementById("rejectAnnotation2").checked === false
+  ) {
+    return false;
+  }
+
+  for (
+    let x = 1;
+    x <=
+    jsonData.completionsArr?.length * (optionsInCompletions === 13 ? 5 : 7);
+    x++
+  ) {
+    if (x % (optionsInCompletions === 13 ? 5 : 7) !== 0) {
       const questionSet = document.getElementsByName(`infoQuestionSet${x}`);
       let flagForSet = false;
       for (let i = 0; i < questionSet.length; i++) {
@@ -805,12 +818,18 @@ function checkEmptyValues() {
       ""
     ) {
       flag = false;
+      console.log("rating empty");
     }
   }
 
   // check if final questions are filled
   if (document.getElementById("confidence").value === "") {
     console.log("confidence level not filled !");
+    flag = false;
+  }
+
+  if (document.getElementById("ranking").value === "") {
+    console.log("ranking not filled !");
     flag = false;
   }
 
@@ -829,7 +848,7 @@ function checkEmptyValues() {
     flag = false;
   }
 
-  return true;
+  return flag;
 }
 
 function setData() {
