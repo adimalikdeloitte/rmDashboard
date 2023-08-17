@@ -11,6 +11,11 @@
       crossorigin="anonymous"
     />
 
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+    />
+
     <link href="styles.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
   </head>
@@ -19,7 +24,10 @@
 
     <!-- Section 1 : Navigation Bar start -->
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
-      <div class="container-fluid">
+      <div
+        class="container-fluid bg-body-tertiary mb-2"
+        style="position: fixed; padding-top: 6%; padding-bottom: 1%"
+      >
         <button
           class="btn btn-outline-secondary navbar-brand"
           onclick="location.reload()"
@@ -49,7 +57,7 @@
 
     <div class="container">
       <div id="fileSelection" class="mt-5">
-        <div class="text-center">
+        <div class="text-center mt-5 pt-5">
           <h1>Welcome to AWS RLHF Dashboard (RM TOOL)</h1>
         </div>
 
@@ -132,7 +140,7 @@
         </div>
       </div>
 
-      <div id="fileContent" style="display: none" class="mt-5">
+      <div id="fileContent" style="display: none" class="mt-5 pt-5">
         <div class="row align-items-center">
           <div class="col-7">
             <p>
@@ -297,17 +305,25 @@
 
           <br />
           <hr />
-          <h4>Checks Info <span id="errorPercentage">-</span></h4>
-          <ul id="ratingChecks">
-            <li>No info yet !</li>
-          </ul>
+          <div>
+            <h4>Checks Info <span id="errorPercentage">-</span></h4>
+            <ul id="ratingChecks">
+              <li>No info yet !</li>
+            </ul>
+          </div>
+          <div style="display: none">
+            <h4>Code Checks -</h4>
+            <ul id="codeChecks">
+              <li>No info yet !</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
 
     <br />
     <div style="text-align: center">
-      <strong>v3.5.0</strong>
+      <strong>v3.6.0</strong>
     </div>
 
     <br />
@@ -316,7 +332,8 @@
     <!-- Section 2 : Main Body end -->
 
     <script src="renderer.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
     <script
       src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"
       integrity="sha384-zYPOMqeu1DAVkHiLqWBUTcbYfZ8osu1Nd6Z89ify25QV9guujx43ITvfi12/QExE"

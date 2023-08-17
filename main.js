@@ -13,6 +13,8 @@ const agent = new https.Agent({ rejectUnauthorized: false });
 
 // const URL = "http://localhost:3000/";
 const URL = "https://rlhfbackend.onrender.com/";
+// const code_check_URL = "https://103.1.113.234/api/code_exec/";
+const code_check_URL = "http://13.235.18.107:8080/api/code_exec/";
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -50,12 +52,15 @@ function createWindow() {
           }
         )
         .then((response) => {
-          // console.log("Response: ", response.data);
           resolve({ response: response.data });
         })
         .catch((error) => {
-          // console.error("Error: ", error);
-          resolve({ response: error });
+          resolve({
+            response: {
+              message: "internal server error",
+              isRejected: false,
+            },
+          });
         });
     });
 
@@ -79,7 +84,6 @@ function createWindow() {
             const fileName = path.slice(lastIndex + 1);
 
             const fileCheck = await checkFile(fileName);
-            console.log({ fileCheck });
 
             const finalData = { fileName, data, fileCheck: fileCheck.response };
             event.sender.send("file-data", finalData);
@@ -118,11 +122,6 @@ function createWindow() {
       console.log("File updated successfully!");
     });
   });
-
-  function objectToCsvRow(obj) {
-    const values = Object.values(obj);
-    return values.map((value) => `"${value}"`).join(",") + "\n";
-  }
 
   function padTo2Digits(num) {
     return num.toString().padStart(2, "0");
@@ -202,6 +201,68 @@ function createWindow() {
       .catch((error) => {
         console.error("Error: ", error);
       });
+  });
+
+  ipcMain.on("checkCode", (event, data) => {
+    const codeBlocks = data.Completions.codeBlocks;
+    if (data.lang === "JavaScript") {
+      const results = {};
+      codeBlocks.map((codes, cidx) => {
+        codes.map((code, idx) => {
+          try {
+            const wrappedCode = `(function() { ${code} })();`;
+            eval(wrappedCode);
+            results["Completion_" + (cidx + 1) + "_code_" + (idx + 1)] =
+              "executable";
+          } catch (error) {
+            results["Completion_" + (cidx + 1) + "_code_" + (idx + 1)] =
+              "Not executable";
+          }
+        });
+      });
+      console.log({ results });
+      event.sender.send("codeChecked", results);
+    } else {
+      let payloadJSON = {
+        lang: data.lang,
+        Completions: {},
+      };
+      codeBlocks.map((comp, cidx) => {
+        comp.map((code, idx) => {
+          payloadJSON.Completions[
+            "Completion_" + (cidx + 1) + "_code_" + (idx + 1)
+          ] = [code];
+        });
+      });
+
+      let payload = JSON.stringify(payloadJSON);
+
+      let config = {
+        method: "get",
+        maxBodyLength: Infinity,
+        url: code_check_URL,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        httpsAgent: new https.Agent({
+          rejectUnauthorized: false, // Bypass SSL certificate verification
+        }),
+        data: payload,
+      };
+
+      axios
+        .request(config)
+        .then((response) => {
+          event.sender.send("codeChecked", response.data);
+        })
+        .catch((error) => {
+          event.sender.send("codeChecked", error);
+        });
+    }
+  });
+
+  ipcMain.on("logToConsole", (event, message) => {
+    console.log({ message });
   });
 }
 

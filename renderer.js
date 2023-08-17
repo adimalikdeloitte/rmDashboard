@@ -247,6 +247,8 @@ ipcRenderer.on("file-data", (event, data) => {
   jsonData = getData(data.data);
   originalData = data.data;
   fillContent(jsonData, data.fileName);
+  // checkCode();
+  setTimeout(() => checkCode(), 3000);
   document.getElementById("fileSelection").style.display = "none";
   document.getElementById("fileContent").style.display = "block";
 
@@ -304,15 +306,35 @@ ipcRenderer.on("file-data", (event, data) => {
   });
 });
 
+function getCodeSnippets(completions) {
+  const regexPattern = /```([\s\S]*?)```/g;
+  const codeBlocks = [];
+  let match;
+
+  completions.map((comp, index) => {
+    let matches = [];
+    while ((match = regexPattern.exec(comp.answer)) !== null) {
+      matches.push(match[1]);
+    }
+    codeBlocks.push(matches);
+  });
+
+  return { codeBlocks };
+}
+
 function fillContent(data, fileName) {
   // set the top section with prompt info
   document.getElementById("fileName").innerText = fileName;
-  document.getElementById("promptId").innerText = data.promptObj.id;
+  document.getElementById("promptId").innerText =
+    data.promptObj.id != undefined ? data.promptObj.id : "";
   document.getElementById("prompt").innerText = data.promptObj.prompText;
   data.promptObj.question?.answer &&
     (document.getElementById(
       `rejectAnnotation${data.promptObj.question?.answer}`
     ).checked = true);
+
+  const { codeBlocks } = getCodeSnippets(data?.completionsArr);
+  // ipcRenderer.send("logToConsole", codeBlocks);
 
   // set completions
   for (let j = 0; j < data?.completionsArr?.length; j++) {
@@ -346,6 +368,70 @@ function fillContent(data, fileName) {
       <textarea readonly rows="10" class="p-3 w-100" style="border-radius: 5px" placeholder="Completion text ...">${element?.answer}</textarea>
       <!-- Add other content as needed for each tab -->
     `;
+
+    // create code content
+    try {
+      const codeToggle = document.createElement("button");
+      codeToggle.setAttribute("class", "btn btn-dark w-100 my-2");
+      let t = document.createTextNode("code snippets");
+      codeToggle.appendChild(t);
+      const toggleCode = () => {
+        const divsToHide = document.getElementsByClassName("code-div");
+        let val = divsToHide[0].style.display === "none" ? "block" : "none";
+        for (let i = 0; i < divsToHide.length; i++) {
+          divsToHide[i].style.display = val;
+        }
+      };
+      codeToggle.addEventListener("click", toggleCode);
+      tabContent.appendChild(codeToggle);
+
+      const codeContent = document.createElement("div");
+      codeContent.setAttribute("class", "p-4 my-2 code-div");
+      codeContent.setAttribute("style", "display: none;");
+      if (codeBlocks[j].length != 0) {
+        codeBlocks[j]?.map((code, idx) => {
+          const codeDiv = document.createElement("div");
+          codeDiv.innerHTML = `<b>Completion ${String.fromCharCode(
+            j + 65
+          )} Code ${idx + 1}</b>`;
+          const codeId = `completion-${String.fromCharCode(j + 65)}-code-${
+            idx + 1
+          }`;
+
+          // create code snippet element
+          const codePreElem = document.createElement("pre");
+          codePreElem.setAttribute("class", "language-javascript bg-dark");
+          const codeElem = document.createElement("code");
+          codeElem.setAttribute("class", "language-javascript");
+          codeElem.setAttribute("id", codeId);
+
+          codeElem.innerText = code;
+          Prism.hooks.add("before-sanity-check", function (env) {
+            env.code = code;
+          });
+          Prism.highlightElement(codeElem);
+          codePreElem.appendChild(codeElem);
+          codeDiv.appendChild(codePreElem);
+
+          const codeCheckElem = document.createElement("p");
+          codeCheckElem.innerHTML = "checking code ...";
+          codeCheckElem.setAttribute("class", "small");
+          codeCheckElem.setAttribute(
+            "id",
+            "Completion_" + (j + 1) + "_code_" + (idx + 1)
+          );
+          codeDiv.appendChild(codeCheckElem);
+
+          codeContent.appendChild(codeDiv);
+        });
+      } else {
+        codeContent.innerHTML =
+          "<pre class='bg-dark p-4 text-danger'><code>No code found in solution.</code></pre>";
+      }
+      tabContent.appendChild(codeContent);
+    } catch (err) {
+      ipcRenderer.send("logToConsole", err);
+    }
 
     // Insert radio button options
     element?.question?.questions?.forEach((v) => {
@@ -1230,7 +1316,8 @@ function runChecks() {
     });
 
     if (commMessage?.length !== 0) {
-      const warningHeading = document.createElement("h4");
+      const warningHeading = document.createElement("h5");
+      warningHeading.setAttribute("class", "mt-4");
       warningHeading.style.color = "orange";
       warningHeading.innerText = "Warnings !";
 
@@ -1265,6 +1352,49 @@ function runChecks() {
     showSuccessAlert("Run checks successful !");
   }
 }
+
+function checkCode() {
+  const { codeBlocks } = getCodeSnippets(jsonData.completionsArr);
+  ipcRenderer.send("checkCode", {
+    lang: languageChoice,
+    // lang: "Python",
+    Completions: {
+      codeBlocks,
+    },
+  });
+}
+ipcRenderer.on("codeChecked", (event, data) => {
+  document.getElementById("codeChecks").innerHTML = "";
+  ipcRenderer.send("logToConsole", data);
+  if (data.hasOwnProperty("error")) {
+    const listItem = document.createElement("li");
+    listItem.style.color = "orange";
+    listItem.innerText = data["error"];
+    document.getElementById("codeChecks").appendChild(listItem);
+  } else {
+    Object.keys(data).map((Key) => {
+      let codeCheckElem = document.getElementById(Key);
+      // const listItem = document.createElement("li");
+      let keyArr = Key.split("_");
+      if (data[Key] === "executable") {
+        codeCheckElem.style.color = "green";
+        codeCheckElem.innerHTML = `Code ${
+          keyArr[3]
+        } of Completion ${String.fromCharCode(
+          Number(keyArr[1]) + 64
+        )} is executable.`;
+      } else {
+        codeCheckElem.style.color = "red";
+        codeCheckElem.innerHTML = `Code ${
+          keyArr[3]
+        } of Completion ${String.fromCharCode(
+          Number(keyArr[1]) + 64
+        )} is not executable.`;
+      }
+      // document.getElementById("codeChecks").appendChild(listItem);
+    });
+  }
+});
 
 function showSuccessAlert(message) {
   const alertHTML = `
@@ -1573,7 +1703,9 @@ function rejectFile() {
     jsonData.promptObj.question.answer = "2";
   }
   if (document.getElementById("rejectionReason").value != "") {
-    setData();
+    // setData();
+    setPromptData(1);
+
     let someData = {
       timestamp: new Date(),
       podNumber,
@@ -1584,6 +1716,14 @@ function rejectFile() {
       task: taskChoice,
     };
     ipcRenderer.send("writeRejectionLogs", [someData]);
+
+    setTimeout(() => {
+      ipcRenderer.send("set-section", {
+        newData: originalData,
+      });
+      showSuccessAlert("Data updated successfully !");
+    }, 1000);
+    // showSuccessAlert("Data updated successfully !");
 
     document.getElementById(`noContent-rejectReason`).style.display = `none`;
     document.getElementById(`noContent-rejectInfo`).style.display = `block`;
